@@ -40,7 +40,7 @@ public class Client {
             inverseJoinColumns = @JoinColumn(name = "grant_type_id"))
     private List<GrantType> grantType;
     @NonNull
-    @OneToOne(fetch = FetchType.EAGER, cascade = CascadeType.MERGE)
+    @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.REMOVE})
     private Scope scope;
     @Nullable
     private String redirectUri;

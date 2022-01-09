@@ -1,8 +1,6 @@
 package ru.spbstu.university.authorizationserver.service;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.lang.Nullable;
@@ -57,9 +55,9 @@ public class ClientService {
     @NonNull
     public Client update(@NonNull String clientId, @NonNull String requestClientId, @NonNull String secret, @NonNull List<String> grantTypes,
                          @Nullable List<String> scopes, @Nullable String redirectUri) {
-        final Scope scope = new Scope(idGenerator.generate(), getScope(scopes));
         final List<GrantType> grantTypeList = grantTypeService.getByName(grantTypes);
         final Client clientActual = clientRepository.findClientByClientId(clientId).orElseThrow(ClientNotFoundException::new);
+        final Scope scope = new Scope(clientActual.getScope().getId(), getScope(scopes));
 
         final Client client = new Client(clientActual.getId(), requestClientId, secret, grantTypeList, scope, redirectUri);
 

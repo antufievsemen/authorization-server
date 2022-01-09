@@ -1,19 +1,20 @@
 package ru.spbstu.university.authorizationserver.controller.crud.dto.request;
 
 import java.util.List;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.NonNull;
 import org.springframework.lang.Nullable;
 
 @Getter
 @AllArgsConstructor
 public class ClientRequest {
-    @NonNull
+    @NotBlank(message = "Client id is required")
     private final String clientId;
-    @NonNull
+    @NotBlank(message = "Client secret is required")
     private final String clientSecret;
-    @NonNull
+    @NotNull(message = "Grant type is required")
     private final List<String> grantTypes;
     @Nullable
     private final List<String> scopes;

@@ -1,0 +1,17 @@
+version: "3.3"
+services:
+  postgres:
+    image: postgres:alpine3.15
+    container_name: auth-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: demouser
+      POSTGRES_PASSWORD: demopassword
+    ports:
+      - "15432:5432"
+  redis:
+    image: redis:alpine
+    container_name: auth-redis
+    restart: always
+    ports:
+      - "16379:6379"

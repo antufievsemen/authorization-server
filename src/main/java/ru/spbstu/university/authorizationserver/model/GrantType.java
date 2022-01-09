@@ -1,15 +1,26 @@
 package ru.spbstu.university.authorizationserver.model;
 
+import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
+import javax.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.Setter;
 import ru.spbstu.university.authorizationserver.model.enums.GrantTypesEnum;
 
-@AllArgsConstructor
+@Entity
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
 public class GrantType {
+    @Id
     @NonNull
-    private final String id;
+    private String id;
     @NonNull
-    private final GrantTypesEnum grantType;
+    @Enumerated(EnumType.STRING)
+    private GrantTypesEnum grantType;
 }

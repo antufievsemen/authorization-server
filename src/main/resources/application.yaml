@@ -1,1 +1,25 @@
-
+spring:
+  datasource:
+    username: demouser
+    password: demopassword
+    url: "jdbc:postgresql://localhost:15432/postgres"
+    driver-class-name: org.postgresql.Driver
+  flyway:
+    user: demouser
+    password: demopassword
+    url: "jdbc:postgresql://localhost:15432/postgres"
+    out-of-order: true
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql=true
+logging:
+  level:
+    org:
+      hibernate:
+        SQL: DEBUG
+        type:
+          descriptor:
+            sql:
+              BasicBinder: TRACE

@@ -9,10 +9,9 @@ import lombok.NonNull;
 public enum GrantTypesEnum {
     AUTHORIZATION_CODE("authorization_code"),
     REFRESH_TOKEN("refresh_token"),
-    CLIENT_CREDENTIALS("client_credentials");
+    CLIENT_CREDENTIALS("client_credentials"),
+    PKCE("pkce");
 
     @NonNull
     private final String name;
-
-
 }

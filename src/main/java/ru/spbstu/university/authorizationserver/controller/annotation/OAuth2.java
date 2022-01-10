@@ -1,15 +1,13 @@
 package ru.spbstu.university.authorizationserver.controller.annotation;
 
-import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-@RequestMapping("/v1/auth-server")
-@Retention(RetentionPolicy.SOURCE)
+@RequestMapping("/oauth2")
 @Target(ElementType.TYPE)
-@Documented
-public @interface ServerName {
+@Retention(RetentionPolicy.SOURCE)
+public @interface OAuth2 {
 }

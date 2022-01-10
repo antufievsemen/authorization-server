@@ -1,6 +1,7 @@
 package ru.spbstu.university.authorizationserver.service;
 
 import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.lang.Nullable;
@@ -28,9 +29,9 @@ public class ClientService {
     @NonNull
     public Client create(@NonNull String id, @NonNull String secret, @NonNull List<String> grantTypes,
                          @Nullable List<String> scopes, @Nullable String redirectUri) {
-        final Client client1 = clientRepository.findClientByClientId(id).orElse(null);
+        final Optional<Client> client1 = clientRepository.findClientByClientId(id);
 
-        if (client1 != null) {
+        if (client1.isPresent()) {
             throw new ClientNotUniqueException();
         }
 

@@ -4,10 +4,14 @@ CREATE TABLE "grant_type"
     "grant_type" TEXT NOT NULL
 );
 
-INSERT INTO "grant_type" VALUES ('pQxMfh0Uw8', 'AUTHORIZATION_CODE');
-INSERT INTO "grant_type" VALUES ('SNi3ta0CFM', 'REFRESH_TOKEN');
-INSERT INTO "grant_type" VALUES ('y4axhrS5xr', 'PKCE');
-INSERT INTO "grant_type" VALUES ('fN6Y5ssgif', 'CLIENT_CREDENTIALS');
+INSERT INTO "grant_type"
+VALUES ('pQxMfh0Uw8', 'AUTHORIZATION_CODE');
+INSERT INTO "grant_type"
+VALUES ('SNi3ta0CFM', 'REFRESH_TOKEN');
+INSERT INTO "grant_type"
+VALUES ('y4axhrS5xr', 'PKCE');
+INSERT INTO "grant_type"
+VALUES ('fN6Y5ssgif', 'CLIENT_CREDENTIALS');
 
 
 CREATE TABLE "client_grant_type"

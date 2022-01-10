@@ -1,7 +1,7 @@
 CREATE TABLE "scope"
 (
     "id"    TEXT PRIMARY KEY,
-    "scope" TEXT NOT NULL
+    "scope" TEXT NULL
 );
 
 ALTER TABLE "client"

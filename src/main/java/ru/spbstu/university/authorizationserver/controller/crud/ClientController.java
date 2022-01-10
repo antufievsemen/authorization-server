@@ -3,6 +3,7 @@ package ru.spbstu.university.authorizationserver.controller.crud;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import javax.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.http.HttpStatus;
@@ -39,7 +40,7 @@ public class ClientController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/clients")
-    public List<ClientResponse> getAll() {
+    public List<ClientResponse> getAll(HttpSession httpSession) {
         return clientService.getAll().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());

@@ -1,7 +1,9 @@
 package ru.spbstu.university.authorizationserver.controller.crud;
 
+import java.security.Principal;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
@@ -40,7 +42,7 @@ public class ClientController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/clients")
-    public List<ClientResponse> getAll(HttpSession httpSession) {
+    public List<ClientResponse> getAll() {
         return clientService.getAll().stream()
                 .map(this::toResponse)
                 .collect(Collectors.toList());

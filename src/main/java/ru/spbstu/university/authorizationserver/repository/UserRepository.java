@@ -8,9 +8,7 @@ import ru.spbstu.university.authorizationserver.model.User;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, String> {
-    @NonNull
-    Optional<User> getUserByLogin(@NonNull String login);
 
     @NonNull
-    Optional<User> getUserByLoginInfo_SessionId(@NonNull String sessionId);
+    Optional<User> getUserByLoginAndPassword(@NonNull String login, @NonNull String password);
 }

@@ -2,12 +2,12 @@ CREATE TABLE "user"
 (
     "login"         TEXT PRIMARY KEY,
     "password"      TEXT NOT NULL,
-    "login_info_id" TEXT NOT NULL
+    "login_info_id" TEXT NULL
 );
 
 CREATE TABLE "login_info"
 (
-    "session_id"      TEXT PRIMARY KEY,
+    "sub"             TEXT PRIMARY KEY,
     "client_id"       TEXT NOT NULL,
     "available_scope" TEXT NULL,
 
@@ -16,4 +16,4 @@ CREATE TABLE "login_info"
 
 ALTER TABLE "user"
     ADD CONSTRAINT
-        "fk__user__login_info_id" FOREIGN KEY ("login_info_id") REFERENCES "login_info" ("id")
+        "fk__user__login_info_id" FOREIGN KEY ("login_info_id") REFERENCES "login_info" ("sub")

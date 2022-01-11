@@ -10,6 +10,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
+import org.springframework.lang.Nullable;
 
 @Entity
 @Getter
@@ -22,7 +23,7 @@ public class User {
     private String login;
     @NonNull
     private String password;
-    @NonNull
+    @Nullable
     @OneToOne(fetch = FetchType.EAGER, cascade = {CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REMOVE})
     private LoginInfo loginInfo;
 }

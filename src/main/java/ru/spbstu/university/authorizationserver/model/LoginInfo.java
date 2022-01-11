@@ -17,7 +17,7 @@ import org.springframework.lang.Nullable;
 public class LoginInfo {
     @Id
     @NonNull
-    private String sessionId;
+    private String sub;
     @NonNull
     private String clientId;
     @Nullable

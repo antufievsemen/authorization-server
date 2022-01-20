@@ -10,11 +10,12 @@ CREATE TABLE "user"
 CREATE TABLE "login_info"
 (
     "sub"             TEXT PRIMARY KEY,
-    "client_id"       TEXT NOT NULL,
-    "available_scope" TEXT NULL,
-    "session_id"      TEXT NULL,
+    "client_id"       TEXT      NOT NULL,
+    "available_scope" TEXT      NULL,
+    "session_id"      TEXT      NULL,
+    "created_at"      TIMESTAMP NOT NULL,
 
-        CONSTRAINT "fk__login_info__client" FOREIGN KEY ("client_id") REFERENCES "client" ("id")
+    CONSTRAINT "fk__login_info__client" FOREIGN KEY ("client_id") REFERENCES "client" ("id")
 );
 
 CREATE TABLE "user_info"

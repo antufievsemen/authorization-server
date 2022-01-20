@@ -13,7 +13,7 @@ import ru.spbstu.university.authorizationserver.model.Scope;
 import ru.spbstu.university.authorizationserver.repository.ClientRepository;
 import ru.spbstu.university.authorizationserver.service.exception.ClientNotFoundException;
 import ru.spbstu.university.authorizationserver.service.exception.ClientNotUniqueException;
-import ru.spbstu.university.authorizationserver.service.idgenerator.IdGenerator;
+import ru.spbstu.university.authorizationserver.service.generator.impl.IdGenerator;
 
 @Service
 @Transactional

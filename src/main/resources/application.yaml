@@ -3,14 +3,17 @@ spring:
     username: demouser
     password: demopassword
     url: "jdbc:postgresql://localhost:15432/postgres"
-    driver-class-name: org.postgresql.Driver
+    driverClassName: org.postgresql.Driver
   flyway:
     user: demouser
     password: demopassword
     url: "jdbc:postgresql://localhost:15432/postgres"
-    out-of-order: true
+    outOfOrder: true
+  redis:
+    port: 16379
+
   jpa:
-    show-sql: true
+    showSql: true
     properties:
       hibernate:
         format_sql=true

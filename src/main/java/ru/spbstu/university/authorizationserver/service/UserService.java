@@ -9,7 +9,7 @@ import ru.spbstu.university.authorizationserver.model.User;
 import ru.spbstu.university.authorizationserver.model.UserInfo;
 import ru.spbstu.university.authorizationserver.repository.UserRepository;
 import ru.spbstu.university.authorizationserver.service.exception.UserNotFoundException;
-import ru.spbstu.university.authorizationserver.service.idgenerator.Generator;
+import ru.spbstu.university.authorizationserver.service.generator.Generator;
 
 @Service
 @Transactional
@@ -21,7 +21,7 @@ public class UserService {
     @NonNull
     private final PasswordEncryptionService passwordEncryptionService;
     @NonNull
-    private final Generator idGenerator;
+    private final Generator<String> idGenerator;
 
     @NonNull
     public User create(@NonNull String login, @NonNull String password, @NonNull LoginInfo loginInfo, @NonNull UserInfo userInfo) {
@@ -32,18 +32,23 @@ public class UserService {
     }
 
     @NonNull
-    public User get(@NonNull String login, @NonNull String password) {
+    public User get(@NonNull String id) {
+        return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+    }
+
+    @NonNull
+    public User getByLoginAndPassword(@NonNull String login, @NonNull String password) {
         return userRepository.getUserByLoginAndPassword(login, password).orElseThrow(UserNotFoundException::new);
     }
 
     @NonNull
-    public User get(@NonNull String login) {
+    public User getByLogin(@NonNull String login) {
         return userRepository.findById(login).orElseThrow(UserNotFoundException::new);
     }
 
     @NonNull
     public User update(@NonNull String login, @NonNull String password) {
-        final User userActual = get(login);
+        final User userActual = getByLogin(login);
         userActual.setPassword(passwordEncryptionService.encryptPassword(password));
 
         return userRepository.save(userActual);
@@ -51,7 +56,7 @@ public class UserService {
 
     @NonNull
     public User addLoginInfo(@NonNull String login, @NonNull LoginInfo loginInfo) {
-        final User user = get(login);
+        final User user = getByLogin(login);
         user.setLoginInfo(loginInfo);
 
         return userRepository.save(user);

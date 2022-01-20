@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @RequestMapping("/v1/auth-server")
-@Retention(RetentionPolicy.SOURCE)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented
 public @interface ServerName {

@@ -12,17 +12,17 @@ import ru.spbstu.university.authorizationserver.repository.AccessTokenRepository
 @AllArgsConstructor
 public class RedisAccessTokenRepository implements AccessTokenRepository {
     @NonNull
-    private final RedisTemplate<String, String> redisTemplate;
+    private final RedisTemplate<String, String> accessTokenTemplate;
 
     @Override
     public void save(@NonNull String id, @NonNull String token, @NonNull Date expireAt) {
-        redisTemplate.opsForValue().set(id, token);
-        redisTemplate.expireAt(id, expireAt);
+        accessTokenTemplate.opsForValue().set(id, token);
+        accessTokenTemplate.expireAt(id, expireAt);
     }
 
     @NonNull
     @Override
     public Optional<String> get(@NonNull String id) {
-        return Optional.ofNullable(redisTemplate.opsForValue().get(id));
+        return Optional.ofNullable(accessTokenTemplate.opsForValue().get(id));
     }
 }

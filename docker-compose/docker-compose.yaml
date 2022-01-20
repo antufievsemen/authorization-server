@@ -13,5 +13,7 @@ services:
     image: redis:alpine
     container_name: auth-redis
     restart: always
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
     ports:
       - "16379:6379"

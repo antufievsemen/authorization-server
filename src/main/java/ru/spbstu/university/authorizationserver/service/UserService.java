@@ -1,5 +1,6 @@
 package ru.spbstu.university.authorizationserver.service;
 
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
@@ -31,9 +32,8 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    @NonNull
-    public User get(@NonNull String id) {
-        return userRepository.findById(id).orElseThrow(UserNotFoundException::new);
+    public Optional<User> get(@NonNull String id) {
+        return userRepository.findById(id);
     }
 
     @NonNull

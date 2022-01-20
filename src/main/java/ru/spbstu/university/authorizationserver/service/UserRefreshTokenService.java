@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.spbstu.university.authorizationserver.model.User;
 import ru.spbstu.university.authorizationserver.model.UserRefreshToken;
 import ru.spbstu.university.authorizationserver.repository.UserRefreshTokenRepository;
+import ru.spbstu.university.authorizationserver.service.exception.UserNotFoundException;
 import ru.spbstu.university.authorizationserver.service.exception.UserRefreshTokenNotFoundException;
 import ru.spbstu.university.authorizationserver.service.generator.Generator;
 
@@ -25,7 +26,7 @@ public class UserRefreshTokenService {
 
     @NonNull
     public UserRefreshToken create(@NonNull String userId, @NonNull String token) {
-        final User user = userService.get(userId);
+        final User user = userService.get(userId).orElseThrow(UserNotFoundException::new);
         final LocalDateTime expiredDate = LocalDateTime.now().plusDays(30);
         final UserRefreshToken userRefreshToken = new UserRefreshToken(idGenerator.generate(), user, token, expiredDate);
 

@@ -1,6 +1,5 @@
 package ru.spbstu.university.authorizationserver.config;
 
-import java.time.LocalDateTime;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -10,15 +9,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 public class RedisLettuceConfig {
 
     @Bean
-    public LettuceConnectionFactory lettuceConnectionFactory() {
-        return new LettuceConnectionFactory();
-    }
-
-    @Bean
-    public RedisTemplate<String, LocalDateTime> redisTemplate() {
-        RedisTemplate<String, LocalDateTime> template = new RedisTemplate<>();
-        template.setConnectionFactory(lettuceConnectionFactory());
-
+    public RedisTemplate<String, String> accessTokenTemplate() {
+        final RedisTemplate<String, String> template = new RedisTemplate<>();
+        template.setConnectionFactory(new LettuceConnectionFactory());
         return template;
     }
 }

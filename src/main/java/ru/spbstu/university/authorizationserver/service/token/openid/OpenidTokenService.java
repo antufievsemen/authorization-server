@@ -53,10 +53,10 @@ public class OpenidTokenService {
     public String create(@NonNull String userId, @NonNull String sub, @NonNull String clientId, @NonNull String nonce,
                          @NonNull String sessionId, @NonNull String accessTokenHash,
                          @NonNull LocalDateTime authAt) {
-        final User user = userService.get(userId);
+        final User user = userService.get(userId).orElse(null);
         final Map<String, Object> map = new HashMap<>();
 
-        setUserInfo(map, user.getUserInfo());
+//        setUserInfo(map, user.getUserInfo());
         map.put("clientId", clientId);
         map.put("at_hash", accessTokenHash);
         map.put("nonce", nonce);

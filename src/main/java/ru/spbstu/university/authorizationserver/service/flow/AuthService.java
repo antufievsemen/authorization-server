@@ -70,7 +70,7 @@ public class AuthService {
 
     private ResponseTypeEnum validateResponseType(@NonNull List<ResponseType> responseTypes, @NonNull ResponseTypeEnum responseTypeEnum) {
         responseTypes.stream()
-                .filter(responseType -> responseTypeEnum.getName().equals(responseType.getName()))
+                .filter(responseType -> responseTypeEnum == responseType.getResponseType())
                 .findAny()
                 .orElseThrow(ResponseTypeNotValidException::new);
 

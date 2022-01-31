@@ -34,6 +34,7 @@ public class RedisLettuceConfig {
     @Bean
     public RedisTemplate<String, String> authCodeTemplate() {
         final RedisTemplate<String, String> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setConnectionFactory(new LettuceConnectionFactory());
         return redisTemplate;
     }
 

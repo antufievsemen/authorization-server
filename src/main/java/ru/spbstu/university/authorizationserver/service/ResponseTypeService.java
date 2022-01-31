@@ -18,6 +18,6 @@ public class ResponseTypeService {
 
     @NonNull
     public List<ResponseType> getByNames(@NonNull List<ResponseTypeEnum> responseTypes) {
-        return responseTypeRepository.findAllByNameIn(responseTypes);
+        return responseTypeRepository.findAllByResponseTypeIn(responseTypes);
     }
 }

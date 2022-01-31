@@ -1,6 +1,5 @@
 package ru.spbstu.university.authorizationserver.controller;
 
-import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.http.HttpStatus;
@@ -10,9 +9,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.spbstu.university.authorizationserver.controller.annotation.ServerName;
-import ru.spbstu.university.authorizationserver.service.token.access.AccessTokenService;
-import ru.spbstu.university.authorizationserver.service.token.openid.OpenidTokenService;
-import ru.spbstu.university.authorizationserver.service.token.refresh.RefreshTokenService;
+import ru.spbstu.university.authorizationserver.service.TokenService;
 
 @ServerName
 @RestController
@@ -20,18 +17,12 @@ import ru.spbstu.university.authorizationserver.service.token.refresh.RefreshTok
 public class TokenController {
 
     @NonNull
-    private final AccessTokenService accessTokenService;
-    @NonNull
-    private final RefreshTokenService refreshTokenService;
-    @NonNull
-    private final OpenidTokenService openidTokenService;
+    private final TokenService tokenService;
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/oauth2/token")
-    public String token() {
-//        return accessTokenService.createJwt("awd", "wadaw", "wdawaw", null);
-//        return accessTokenService.create("awdaw");
-        return openidTokenService.create("awdaw", "wadaw", "wadwdaw", "wadaw", "wadawd", "wadawd", LocalDateTime.now());
+    public void token() {
+
     }
 
     @ResponseStatus(HttpStatus.OK)

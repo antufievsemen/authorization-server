@@ -9,7 +9,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.spbstu.university.authorizationserver.model.Client;
 import ru.spbstu.university.authorizationserver.model.GrantType;
+import ru.spbstu.university.authorizationserver.model.ResponseType;
 import ru.spbstu.university.authorizationserver.model.Scope;
+import ru.spbstu.university.authorizationserver.model.enums.ResponseTypeEnum;
 import ru.spbstu.university.authorizationserver.repository.ClientRepository;
 import ru.spbstu.university.authorizationserver.service.exception.ClientNotFoundException;
 import ru.spbstu.university.authorizationserver.service.exception.ClientNotUniqueException;
@@ -25,27 +27,33 @@ public class ClientService {
     private final IdGenerator idGenerator;
     @NonNull
     private final GrantTypeService grantTypeService;
+    @NonNull
+    private final ResponseTypeService responseTypeService;
+    @NonNull
+    private final ScopeService scopeService;
 
     @NonNull
     public Client create(@NonNull String id, @NonNull String secret, @NonNull List<String> grantTypes,
-                         @Nullable List<String> scopes, @Nullable String redirectUri) {
-        final Optional<Client> client1 = clientRepository.findClientByClientId(id);
+                         @NonNull List<String> scopes, @NonNull List<ResponseTypeEnum> responseTypes, @Nullable String redirectUri) {
+        final Optional<Client> client1 = clientRepository.findByClientId(id);
 
         if (client1.isPresent()) {
             throw new ClientNotUniqueException();
         }
 
-        final Scope scope = new Scope(idGenerator.generate(), getScope(scopes));
+        final List<Scope> scopeList = scopeService.create(scopes);
         final List<GrantType> grantTypeList = grantTypeService.getByName(grantTypes);
+        final List<ResponseType> responseTypeList = responseTypeService.getByNames(responseTypes);
 
-        final Client client = new Client(idGenerator.generate(), id, secret, grantTypeList, scope, redirectUri);
+        final Client client = new Client(idGenerator.generate(), id, secret, grantTypeList, scopeList,
+                responseTypeList, redirectUri);
 
         return clientRepository.save(client);
     }
 
     @NonNull
-    public Client get(@NonNull String id) {
-        return clientRepository.findClientByClientId(id).orElseThrow(ClientNotFoundException::new);
+    public Client getByClientId(@NonNull String id) {
+        return clientRepository.findByClientId(id).orElseThrow(ClientNotFoundException::new);
     }
 
     @NonNull
@@ -55,23 +63,19 @@ public class ClientService {
 
     @NonNull
     public Client update(@NonNull String clientId, @NonNull String requestClientId, @NonNull String secret, @NonNull List<String> grantTypes,
-                         @Nullable List<String> scopes, @Nullable String redirectUri) {
+                         @NonNull List<String> scopes, @NonNull List<ResponseTypeEnum> responseTypes, @Nullable String redirectUri) {
         final List<GrantType> grantTypeList = grantTypeService.getByName(grantTypes);
-        final Client clientActual = clientRepository.findClientByClientId(clientId).orElseThrow(ClientNotFoundException::new);
-        final Scope scope = new Scope(clientActual.getScope().getId(), getScope(scopes));
+        final Client clientActual = clientRepository.findByClientId(clientId).orElseThrow(ClientNotFoundException::new);
+        final List<Scope> scopeList = scopeService.create(scopes);
+        final List<ResponseType> responseTypeList = responseTypeService.getByNames(responseTypes);
 
-        final Client client = new Client(clientActual.getId(), requestClientId, secret, grantTypeList, scope, redirectUri);
+        final Client client = new Client(clientActual.getId(), requestClientId, secret, grantTypeList, scopeList,
+                responseTypeList, redirectUri);
 
         return clientRepository.save(client);
     }
 
     public void delete(@NonNull String id) {
         clientRepository.deleteClientByClientId(id);
-    }
-
-    @Nullable
-    private String getScope(@Nullable List<String> scopes) {
-        return scopes != null ? scopes.stream()
-                .reduce((s, s2) -> s.concat(";" + s2)).orElse(null) : null;
     }
 }

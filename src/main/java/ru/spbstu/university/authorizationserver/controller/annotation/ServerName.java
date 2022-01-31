@@ -7,7 +7,7 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 import org.springframework.web.bind.annotation.RequestMapping;
 
-@RequestMapping("/v1/auth-server")
+@RequestMapping("/auth-server/v1")
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Documented

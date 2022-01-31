@@ -9,7 +9,7 @@ import ru.spbstu.university.authorizationserver.model.Client;
 @Repository
 public interface ClientRepository extends JpaRepository<Client, String> {
     @NonNull
-    Optional<Client> findClientByClientId(@NonNull String clientId);
+    Optional<Client> findByClientId(@NonNull String clientId);
 
     void deleteClientByClientId(@NonNull String clientId);
 }

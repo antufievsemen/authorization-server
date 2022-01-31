@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
-import org.springframework.lang.Nullable;
 
 @Entity
 @Getter
@@ -18,6 +17,6 @@ public class Scope {
     @Id
     @NonNull
     private String id;
-    @Nullable
-    private String scope;
+    @NonNull
+    private String name;
 }

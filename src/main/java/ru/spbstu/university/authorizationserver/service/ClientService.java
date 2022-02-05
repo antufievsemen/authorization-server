@@ -15,6 +15,7 @@ import ru.spbstu.university.authorizationserver.model.enums.ResponseTypeEnum;
 import ru.spbstu.university.authorizationserver.repository.ClientRepository;
 import ru.spbstu.university.authorizationserver.service.exception.ClientNotFoundException;
 import ru.spbstu.university.authorizationserver.service.exception.ClientNotUniqueException;
+import ru.spbstu.university.authorizationserver.service.exception.IncorrectClientCredentialsException;
 import ru.spbstu.university.authorizationserver.service.generator.impl.IdGenerator;
 
 @Service
@@ -54,6 +55,12 @@ public class ClientService {
     @NonNull
     public Client getByClientId(@NonNull String id) {
         return clientRepository.findByClientId(id).orElseThrow(ClientNotFoundException::new);
+    }
+
+    @NonNull
+    public Client getByClientIdAndSecret(@NonNull String clientId, @NonNull String clientSecret) {
+        return clientRepository.getClientByClientIdAndClientSecret(clientId, clientSecret)
+                .orElseThrow(IncorrectClientCredentialsException::new);
     }
 
     @NonNull

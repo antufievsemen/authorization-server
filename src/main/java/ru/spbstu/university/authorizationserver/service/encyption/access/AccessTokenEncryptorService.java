@@ -7,13 +7,11 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
@@ -23,11 +21,11 @@ import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
-import ru.spbstu.university.authorizationserver.repository.AccessTokenRepository;
-import ru.spbstu.university.authorizationserver.service.generator.Generator;
+import ru.spbstu.university.authorizationserver.config.SelfIssuerSettings;
+import ru.spbstu.university.authorizationserver.model.enums.TokenType;
 import ru.spbstu.university.authorizationserver.service.encyption.access.exception.AccessTokenIsExpiredException;
-import ru.spbstu.university.authorizationserver.service.encyption.access.exception.AccessTokenIsNotActiveException;
 import ru.spbstu.university.authorizationserver.service.encyption.access.exception.AccessTokenNotValidException;
+import ru.spbstu.university.authorizationserver.service.generator.Generator;
 
 @Slf4j
 @Service
@@ -35,19 +33,17 @@ public class AccessTokenEncryptorService {
 
     @NonNull
     private final Generator<String> idGenerator;
-    @NonNull
-    private final AccessTokenRepository accessTokenRepository;
-    private final String ISSUER;
     private final int VALIDITY_TIME_IN_MS;
     private final KeyPair keyPair;
+    @NonNull
+    private final SelfIssuerSettings settings;
 
 
     @SneakyThrows
     @Autowired
-    public AccessTokenEncryptorService(@NonNull Generator<String> idGenerator, @NonNull AccessTokenRepository accessTokenRepository) {
+    public AccessTokenEncryptorService(@NonNull Generator<String> idGenerator, @NonNull SelfIssuerSettings settings) {
         this.idGenerator = idGenerator;
-        this.accessTokenRepository = accessTokenRepository;
-        this.ISSUER = "http://auth-server/";
+        this.settings = settings;
         this.VALIDITY_TIME_IN_MS = 3_600_000;
 
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -57,7 +53,7 @@ public class AccessTokenEncryptorService {
     @SneakyThrows
     @NonNull
     public TokenInfo createJwt(@NonNull String sub, @NonNull String clientId,
-                            @NonNull String nonce, @Nullable String aud, @NonNull List<String> scopes) {
+                               @NonNull String nonce, @Nullable List<String> aud, @NonNull List<String> scopes) {
         final Map<String, Object> map = new HashMap<>();
         map.put("clientId", clientId);
         map.put("nonce", nonce);
@@ -65,41 +61,46 @@ public class AccessTokenEncryptorService {
         map.put("scopes", scopes);
         final Date now = new Date();
         final Date expiredTime = new Date(now.getTime() + VALIDITY_TIME_IN_MS);
-        return new TokenInfo(Jwts.builder()
+        final String token = Jwts.builder()
                 .setClaims(map)
                 .setSubject(sub)
-                .setAudience(aud)
-                .setIssuer(ISSUER)
+                .setAudience(aud != null ? aud.toString() : "")
+                .setIssuer(settings.getIssuer())
                 .setId(idGenerator.generate())
                 .setIssuedAt(now)
                 .setExpiration(expiredTime)
                 .setNotBefore(now)
                 .setHeaderParam("typ", "JWT")
                 .signWith(SignatureAlgorithm.RS256, keyPair.getPrivate())
-                .compact(), expiredTime);
+                .compact();
+
+        return new TokenInfo(sub, nonce, token, expiredTime, scopes, TokenType.JWT);
     }
 
+    @SneakyThrows
+    @NonNull
+    public TokenInfo createJwt(@NonNull String accessToken) {
+        final Claims claims = validate(accessToken);
+        final Date now = new Date();
+        final Date expiredTime = new Date(now.getTime() + VALIDITY_TIME_IN_MS);
+        final String token = Jwts.builder()
+                .setClaims(claims)
+                .setHeaderParam("typ", "JWT")
+                .signWith(SignatureAlgorithm.RS256, keyPair.getPrivate())
+                .compact();
+        return new TokenInfo(claims.getSubject(), claims.get("nonce", String.class), token, expiredTime,
+                claims.get("scopes", List.class), TokenType.JWT);
+    }
+
+    @NonNull
     public Claims validate(@NonNull String token) {
         Jws<Claims> claims = getClaims(token);
-        final Optional<String> optionalAccessToken = accessTokenRepository.get(claims.getBody().getId());
         final boolean isExpired = claims.getBody().getExpiration().after(new Date());
-
-        if (optionalAccessToken.isPresent()) {
-            throw new AccessTokenIsNotActiveException();
-        } else if (isExpired) {
+        if (isExpired) {
             throw new AccessTokenIsExpiredException();
         }
 
         return claims.getBody();
-    }
-
-    public void revoke(@NonNull String token) {
-        Jws<Claims> claims = getClaims(token);
-        final String id = claims.getBody().getId();
-        accessTokenRepository.get(id).ifPresentOrElse(s -> {
-                    throw new AccessTokenIsNotActiveException();
-                },
-                () -> accessTokenRepository.save(id, token, claims.getBody().getExpiration()));
     }
 
     @SneakyThrows
@@ -125,10 +126,18 @@ public class AccessTokenEncryptorService {
 
     @Getter
     @AllArgsConstructor
-    public static class TokenInfo{
+    public static class TokenInfo {
+        @NonNull
+        private final String nonce;
+        @NonNull
+        private final String subject;
         @NonNull
         private final String token;
         @NonNull
         private final Date expiresIn;
+        @NonNull
+        private final List<String> scopes;
+        @NonNull
+        private final TokenType tokenType;
     }
 }

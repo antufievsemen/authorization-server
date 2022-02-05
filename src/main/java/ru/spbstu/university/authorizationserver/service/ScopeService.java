@@ -53,7 +53,7 @@ public class ScopeService {
 
     @NonNull
     public List<Scope> getAllByName(@NonNull List<String> scopes) {
-        if (scopeRepository.existsAllByNameIn(scopes)) {
+        if (!scopeRepository.existsAllByNameIn(scopes)) {
             throw new ScopeNotValidException();
         }
 

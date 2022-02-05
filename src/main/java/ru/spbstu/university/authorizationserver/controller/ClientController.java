@@ -71,7 +71,7 @@ public class ClientController {
     @NonNull
     private ClientResponse toResponse(@NonNull Client client) {
         return new ClientResponse(client.getClientId(), client.getClientSecret(), getGrantTypes(client.getGrantTypes()),
-                getScopes(client.getScopes()), getResponseTypes(client.getResponseTypes()), client.getRedirectUri());
+                getScopes(client.getScopes()), getResponseTypes(client.getResponseTypes()), client.getCallback());
     }
 
     @NonNull

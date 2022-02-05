@@ -12,4 +12,7 @@ public interface ClientRepository extends JpaRepository<Client, String> {
     Optional<Client> findByClientId(@NonNull String clientId);
 
     void deleteClientByClientId(@NonNull String clientId);
+
+    @NonNull
+    Optional<Client> getClientByClientIdAndClientSecret(@NonNull String clientId, @NonNull String clientSecret);
 }

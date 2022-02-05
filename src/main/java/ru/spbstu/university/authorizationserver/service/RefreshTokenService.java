@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.spbstu.university.authorizationserver.model.User;
 import ru.spbstu.university.authorizationserver.model.UserRefreshToken;
-import ru.spbstu.university.authorizationserver.repository.UserRefreshTokenRepository;
+import ru.spbstu.university.authorizationserver.repository.RefreshTokenRepository;
 import ru.spbstu.university.authorizationserver.service.exception.UserNotFoundException;
 import ru.spbstu.university.authorizationserver.service.exception.UserRefreshTokenNotFoundException;
 import ru.spbstu.university.authorizationserver.service.generator.Generator;
@@ -18,7 +18,7 @@ import ru.spbstu.university.authorizationserver.service.generator.Generator;
 @AllArgsConstructor
 public class RefreshTokenService {
     @NonNull
-    private final UserRefreshTokenRepository userRefreshTokenRepository;
+    private final RefreshTokenRepository refreshTokenRepository;
     @NonNull
     private final UserService userService;
     @NonNull
@@ -30,17 +30,17 @@ public class RefreshTokenService {
         final LocalDateTime expiredDate = LocalDateTime.now().plusDays(30);
         final UserRefreshToken userRefreshToken = new UserRefreshToken(idGenerator.generate(), user, token, expiredDate);
 
-        return userRefreshTokenRepository.save(userRefreshToken);
+        return refreshTokenRepository.save(userRefreshToken);
     }
 
     @NonNull
     public Optional<UserRefreshToken> getByToken(@NonNull String token) {
-        return userRefreshTokenRepository.findByRefreshToken(token);
+        return refreshTokenRepository.findByRefreshToken(token);
     }
 
     @NonNull
     public Optional<UserRefreshToken> getByUserId(@NonNull String userId) {
-        return userRefreshTokenRepository.findByUser_Sub(userId);
+        return refreshTokenRepository.findByUser_Sub(userId);
     }
 
     @NonNull
@@ -50,10 +50,10 @@ public class RefreshTokenService {
 
         userRefreshToken.setRefreshToken(token);
         userRefreshToken.setExpiredAt(expiredDate);
-        return userRefreshTokenRepository.save(userRefreshToken);
+        return refreshTokenRepository.save(userRefreshToken);
     }
 
     public void delete(@NonNull String id) {
-        userRefreshTokenRepository.deleteById(id);
+        refreshTokenRepository.deleteById(id);
     }
 }

@@ -19,8 +19,8 @@ public class PkceValidatorEncryptorService {
     private final PkceRequestService pkceRequestService;
 
     @NonNull
-    public PkceRequest validate(@NonNull String code, @NonNull String state) {
-        final PkceRequest pkceRequest = pkceRequestService.get(state).orElseThrow(PkceAuthIncorrectException::new);
+    public PkceRequest validate(@NonNull String code, @NonNull String sessionId) {
+        final PkceRequest pkceRequest = pkceRequestService.get(sessionId).orElseThrow(PkceAuthIncorrectException::new);
         try {
             MessageDigest messageDigest = MessageDigest.getInstance(pkceRequest.getCodeChallengeMethod());
             String codeChallenge = Base64.getEncoder().encodeToString(messageDigest.digest(

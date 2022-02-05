@@ -52,5 +52,5 @@ public class Client {
             inverseJoinColumns = @JoinColumn(name = "scope_id"))
     private List<ResponseType> responseTypes;
     @Nullable
-    private String redirectUri;//rename callback
+    private String callback;//rename callback
 }

@@ -46,7 +46,7 @@ public class UserService {
     }
 
     @NonNull
-    public User update(@NonNull String sub, @NonNull String sessionId, boolean consented) {
+    public User update(@NonNull String sub, @NonNull String sessionId) {
         final User user = get(sub).orElseThrow(UserNotFoundException::new);
         user.setSessionId(sessionId);
 

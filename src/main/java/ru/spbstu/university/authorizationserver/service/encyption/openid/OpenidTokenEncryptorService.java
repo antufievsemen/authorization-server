@@ -15,6 +15,7 @@ import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.spbstu.university.authorizationserver.config.SelfIssuerSettings;
 import ru.spbstu.university.authorizationserver.service.UserService;
 import ru.spbstu.university.authorizationserver.service.encyption.access.exception.AccessTokenNotValidException;
 import ru.spbstu.university.authorizationserver.service.encyption.openid.exception.OpenidTokenIsNotActiveException;
@@ -29,15 +30,16 @@ public class OpenidTokenEncryptorService {
     @NonNull
     private final Generator<String> idGenerator;
     private final long VALIDITY_TIME_IN_MS;
-    private final String ISSUER;
     private final KeyPair keyPair;
+    @NonNull
+    private final SelfIssuerSettings settings;
 
     @SneakyThrows
     @Autowired
-    public OpenidTokenEncryptorService(@NonNull UserService userService, @NonNull Generator<String> idGenerator) {
+    public OpenidTokenEncryptorService(@NonNull UserService userService, @NonNull Generator<String> idGenerator, @NonNull SelfIssuerSettings settings) {
         this.userService = userService;
         this.idGenerator = idGenerator;
-        this.ISSUER = "http://auth-server/";
+        this.settings = settings;
         this.VALIDITY_TIME_IN_MS = 1728000000;
 
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
@@ -61,7 +63,7 @@ public class OpenidTokenEncryptorService {
                 .setClaims(map)
                 .setSubject(sub)
                 .setAudience("auth-code-client")
-                .setIssuer(ISSUER)
+                .setIssuer(settings.getIssuer())
                 .setId(idGenerator.generate())
                 .setIssuedAt(now)
                 .setExpiration(expiredTime)
@@ -79,6 +81,17 @@ public class OpenidTokenEncryptorService {
         if (!at_hash.equals(accessTokenHash)) {
             throw new OpenidTokenNotValidException();
         } else if (isExpired) {
+            throw new OpenidTokenIsNotActiveException();
+        }
+
+        return claims.getBody();
+    }
+
+    @NonNull
+    public Claims validate(@NonNull String token) {
+        Jws<Claims> claims = getClaims(token);
+        final boolean isExpired = claims.getBody().getExpiration().after(new Date());
+        if (isExpired) {
             throw new OpenidTokenIsNotActiveException();
         }
 

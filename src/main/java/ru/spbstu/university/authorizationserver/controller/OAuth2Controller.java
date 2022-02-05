@@ -15,7 +15,7 @@ import org.springframework.web.servlet.view.RedirectView;
 import ru.spbstu.university.authorizationserver.controller.annotation.ServerName;
 import ru.spbstu.university.authorizationserver.model.enums.ResponseTypeEnum;
 import ru.spbstu.university.authorizationserver.service.flow.AuthService;
-import ru.spbstu.university.authorizationserver.service.flow.dto.AuthResponse;
+import ru.spbstu.university.authorizationserver.service.flow.dto.RedirectResponse;
 
 @ServerName
 @RestController
@@ -34,17 +34,25 @@ public class OAuth2Controller {
                              @RequestParam(name = "state") String state,
                              @RequestParam(name = "code_challenge", required = false) Optional<String> codeChallenge,
                              @RequestParam(name = "code_challenge_method", required = false) Optional<String> codeChallengeMethod,
+                             @RequestParam(name = "consent_verifier", required = false) Optional<String> consentVerifier,
                              @NonNull HttpServletRequest request, @NonNull RedirectAttributes redirectAttributes) {
-        final AuthResponse authResponse = authService.authorize(clientId, responseTypeEnum, redirectUri, scopes, state,
-                nonce, codeChallenge, codeChallengeMethod, request.getRequestedSessionId(), request.getHeader("referer"));
+        final RedirectResponse redirectResponse = authService.authorize(clientId, responseTypeEnum, redirectUri, scopes, state,
+                nonce, codeChallenge, codeChallengeMethod, request.getRequestedSessionId(), request.getHeader("referer"), consentVerifier);
 
-        redirectAttributes.addAllAttributes(authResponse.getRedirectAttributes());
-        return new RedirectView(authResponse.getRedirectUrl());
+        redirectAttributes.addAllAttributes(redirectResponse.getRedirectAttributes());
+        return new RedirectView(redirectResponse.getRedirectUrl());
     }
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/oauth2/sessions/logout")
-    public void logout() {
+    public RedirectView logout(@RequestParam(name = "id_token_hint", required = false) Optional<String> idTokenHint,
+                               @RequestParam(name = "post_logout_redirect_uri", required = false) Optional<String> redirectUri,
+                               @RequestParam(name = "logout_challenge", required = false) Optional<String> logoutVerifier,
+                               @NonNull RedirectAttributes redirectAttributes, @NonNull HttpServletRequest request) {
+        final RedirectResponse redirectResponse = authService.logout(request.getRequestedSessionId(), idTokenHint,
+                redirectUri, request.getHeader("referer"), logoutVerifier);
 
+        redirectAttributes.addAllAttributes(redirectResponse.getRedirectAttributes());
+        return new RedirectView(redirectResponse.getRedirectUrl());
     }
 }

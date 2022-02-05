@@ -39,7 +39,6 @@ public class User {
     private List<Scope> scopes;
     @NonNull
     private String sessionId;
-    private boolean consented;
     @CreationTimestamp
     private LocalDateTime createdAt;
 

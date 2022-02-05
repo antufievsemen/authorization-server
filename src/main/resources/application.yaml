@@ -25,3 +25,11 @@ logging:
           descriptor:
             sql:
               BasicBinder: TRACE
+
+application:
+  urls:
+    login: http://localhost:8081/login
+    consent: http://localhost:8081/consent
+    logout: http://localhost:8081/logout
+    self:
+      issuer: http://localhost:8080

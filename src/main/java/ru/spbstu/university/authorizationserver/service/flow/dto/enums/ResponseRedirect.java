@@ -8,6 +8,7 @@ import lombok.NonNull;
 @AllArgsConstructor
 public enum ResponseRedirect {
     CONSENT_CHALLENGE("consent_challenge"),
+    CONSENT_VERIFIER("consent_challenge"),
     LOGIN_CHALLENGE("login_challenge");
 
     @NonNull

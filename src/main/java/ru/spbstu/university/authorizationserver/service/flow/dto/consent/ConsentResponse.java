@@ -4,12 +4,12 @@ import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
-import ru.spbstu.university.authorizationserver.service.flow.dto.AuthResponse;
+import ru.spbstu.university.authorizationserver.service.flow.dto.RedirectResponse;
 import ru.spbstu.university.authorizationserver.service.flow.dto.enums.ResponseRedirect;
 
 @Getter
 @AllArgsConstructor
-public class ConsentResponse implements AuthResponse {
+public class ConsentResponse implements RedirectResponse {
     @NonNull
     private final String challenge;
     @NonNull

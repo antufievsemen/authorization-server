@@ -4,14 +4,14 @@ import java.util.Optional;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import ru.spbstu.university.authorizationserver.model.UserRefreshToken;
+import ru.spbstu.university.authorizationserver.model.RefreshToken;
 
 @Repository
-public interface RefreshTokenRepository extends JpaRepository<UserRefreshToken, String> {
+public interface RefreshTokenRepository extends JpaRepository<RefreshToken, String> {
 
     @NonNull
-    Optional<UserRefreshToken> findByRefreshToken(@NonNull String token);
+    Optional<RefreshToken> getRefreshTokenByToken(@NonNull String token);
 
     @NonNull
-    Optional<UserRefreshToken> findByUser_Sub(@NonNull String userId);
+    Optional<RefreshToken> getRefreshTokenByUser_Id(@NonNull String userId);
 }

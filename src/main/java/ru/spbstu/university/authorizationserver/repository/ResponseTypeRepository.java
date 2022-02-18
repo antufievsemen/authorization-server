@@ -10,5 +10,5 @@ import ru.spbstu.university.authorizationserver.model.enums.ResponseTypeEnum;
 @Repository
 public interface ResponseTypeRepository extends JpaRepository<ResponseType, String> {
     @NonNull
-    List<ResponseType> findAllByResponseTypeIn(@NonNull List<ResponseTypeEnum> responseTypes);
+    List<ResponseType> getResponseTypeByTypeIn(@NonNull List<ResponseTypeEnum> responseTypes);
 }

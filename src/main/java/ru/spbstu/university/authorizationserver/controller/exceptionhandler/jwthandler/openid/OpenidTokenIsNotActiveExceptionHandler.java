@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import ru.spbstu.university.authorizationserver.controller.exceptionhandler.jwthandler.dto.JwtErrorBody;
-import ru.spbstu.university.authorizationserver.service.encyption.openid.exception.OpenidTokenIsNotActiveException;
+import ru.spbstu.university.authorizationserver.service.auth.security.token.openid.exception.OpenidTokenIsNotActiveException;
 
 @ControllerAdvice
 public class OpenidTokenIsNotActiveExceptionHandler {

@@ -1,15 +1,15 @@
 package ru.spbstu.university.authorizationserver.service;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.spbstu.university.authorizationserver.model.GrantType;
-import ru.spbstu.university.authorizationserver.model.enums.GrantTypesEnum;
+import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 import ru.spbstu.university.authorizationserver.repository.GrantTypeRepository;
+import ru.spbstu.university.authorizationserver.service.auth.exception.GrantTypeNotValidException;
 
 @Service
 @Transactional
@@ -20,11 +20,19 @@ public class GrantTypeService {
     private final GrantTypeRepository grantTypeRepository;
 
     @NonNull
-    public List<GrantType> getByName(@NonNull List<String> grantTypeNames) {
-        final List<GrantTypesEnum> grantTypesList = grantTypeNames.stream()
-                .map(s -> GrantTypesEnum.valueOf(s.toUpperCase()))
-                .collect(Collectors.toList());
+    public List<GrantType> getByName(@NonNull List<GrantTypeEnum> grantTypeNames) {
+        return grantTypeRepository.getGrantTypeByTypeIn(grantTypeNames);
+    }
 
-        return grantTypeRepository.findAllByGrantTypeIn(grantTypesList);
+    @NonNull
+    public List<GrantTypeEnum> validate(@NonNull List<GrantType> available, @NonNull List<GrantTypeEnum> requested) {
+        final List<GrantTypeEnum> collect = available.stream()
+                .map(GrantType::getType)
+                .collect(Collectors.toList());
+        if (!collect.containsAll(requested)) {
+            throw new GrantTypeNotValidException();
+        }
+
+        return requested;
     }
 }

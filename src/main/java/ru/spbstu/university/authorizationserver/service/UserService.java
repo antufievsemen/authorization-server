@@ -29,7 +29,7 @@ public class UserService {
 
     @NonNull
     public Optional<User> getBySessionId(@NonNull String sessionId) {
-        return userRepository.getUserBySessionId(sessionId);
+        return userRepository.getBySessionId(sessionId);
     }
 
     @NonNull

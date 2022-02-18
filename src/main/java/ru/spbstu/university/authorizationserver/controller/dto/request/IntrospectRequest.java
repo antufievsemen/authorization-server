@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import org.springframework.lang.Nullable;
+import ru.spbstu.university.authorizationserver.model.enums.TokenEnum;
+import ru.spbstu.university.authorizationserver.model.enums.TokenType;
 
 @Getter
 @AllArgsConstructor

@@ -1,5 +1,6 @@
 package ru.spbstu.university.authorizationserver.model;
 
+import java.io.Serializable;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import lombok.AllArgsConstructor;
@@ -13,7 +14,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Scope {
+public class Scope implements Serializable {
     @Id
     @NonNull
     private String id;

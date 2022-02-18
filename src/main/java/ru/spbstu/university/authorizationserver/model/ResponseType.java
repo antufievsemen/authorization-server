@@ -1,6 +1,8 @@
 package ru.spbstu.university.authorizationserver.model;
 
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -19,5 +21,6 @@ public class ResponseType {
     @NonNull
     private String id;
     @NonNull
-    private ResponseTypeEnum responseType;
+    @Enumerated(EnumType.STRING)
+    private ResponseTypeEnum type;
 }

@@ -1,43 +1,28 @@
-//package ru.spbstu.university.authorizationserver.controller;
-//
-//import lombok.AllArgsConstructor;
-//import lombok.Getter;
-//import lombok.NonNull;
-//import org.springframework.http.HttpStatus;
-//import org.springframework.web.bind.annotation.GetMapping;
-//import org.springframework.web.bind.annotation.RequestParam;
-//import org.springframework.web.bind.annotation.ResponseStatus;
-//import org.springframework.web.bind.annotation.RestController;
-//import ru.spbstu.university.authorizationserver.controller.annotation.ServerName;
-//import ru.spbstu.university.authorizationserver.model.enums.Gender;
-//
-//@ServerName
-//@RestController
-//@AllArgsConstructor
-//public class UserInfoController {
-//
-//    @ResponseStatus(HttpStatus.OK)
-//    @GetMapping("/userinfo")
-//    public UserInfoResponse userinfo(@RequestParam(name = "openid_token") String openidToken) {
-//        return new UserInfoResponse();
-//    }
-//
-//    @Getter
-//    @AllArgsConstructor
-//    private static class UserInfoResponse {
-//        @NonNull
-//        private final String sub;
-//        @NonNull
-//        private final String firstname;
-//        @NonNull
-//        private final String lastname;
-//        @NonNull
-//        private final Gender gender;
-//        @NonNull
-//        private final String phoneNumber;
-//        private final boolean phoneVerified;
-//        @NonNull
-//        private final String email;
-//        private final boolean emailVerified;
-//    }
-//}
+package ru.spbstu.university.authorizationserver.controller;
+
+import javax.servlet.http.HttpSession;
+import lombok.AllArgsConstructor;
+import lombok.NonNull;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
+import ru.spbstu.university.authorizationserver.controller.annotation.ApiV1;
+import ru.spbstu.university.authorizationserver.controller.dto.response.UserInfoResponse;
+import ru.spbstu.university.authorizationserver.service.auth.TokenManager;
+import ru.spbstu.university.authorizationserver.service.auth.UserInfoManager;
+
+@ApiV1
+@RestController
+@AllArgsConstructor
+public class UserInfoController {
+    @NonNull
+    private final UserInfoManager userInfoManager;
+
+    @ResponseStatus(HttpStatus.OK)
+    @GetMapping("/oauth2/userinfo")
+    public UserInfoResponse userinfo(@RequestParam("token") String token, @NonNull HttpSession httpSession) {
+        return userInfoManager.getInfo(token, httpSession.getId());
+    }
+}

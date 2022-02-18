@@ -5,6 +5,7 @@ import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Repository;
 import ru.spbstu.university.authorizationserver.repository.RevokeTokenRepository;
 
@@ -12,19 +13,19 @@ import ru.spbstu.university.authorizationserver.repository.RevokeTokenRepository
 @AllArgsConstructor
 public class RedisRevokeTokenRepository implements RevokeTokenRepository {
     @NonNull
-    private final RedisTemplate<String, String> revokeTokenTemplate;
+    private final StringRedisTemplate stringRedisTemplate;
 
     @NonNull
     @Override
     public String save(@NonNull String id, @NonNull String token, @NonNull Date expireAt) {
-        revokeTokenTemplate.opsForValue().set(id, token);
-        revokeTokenTemplate.expireAt(id, expireAt);
+        stringRedisTemplate.opsForValue().set(id, token);
+        stringRedisTemplate.expireAt(id, expireAt);
         return token;
     }
 
     @NonNull
     @Override
     public Optional<String> get(@NonNull String id) {
-        return Optional.ofNullable(revokeTokenTemplate.opsForValue().get(id));
+        return Optional.ofNullable(stringRedisTemplate.opsForValue().get(id));
     }
 }

@@ -1,17 +1,17 @@
 CREATE TABLE "response_type"
 (
     "id"   TEXT PRIMARY KEY,
-    "name" TEXT NOT NULL
+    "type" TEXT NOT NULL
 );
 
-INSERT INTO "response_type" (id, name)
-VALUES ('o1UnsZXBkj', 'code');
-INSERT INTO "response_type" (id, name)
-VALUES ('NE6Nf5uPxR', 'token');
-INSERT INTO "response_type" (id, name)
-VALUES ('E0fNeRdRWr', 'id_token');
+INSERT INTO "response_type" (id, type)
+VALUES ('o1UnsZXBkj', 'CODE');
+INSERT INTO "response_type" (id, type)
+VALUES ('NE6Nf5uPxR', 'TOKEN');
+INSERT INTO "response_type" (id, type)
+VALUES ('E0fNeRdRWr', 'ID_TOKEN');
 
-CREATE TABLE "client_response_type"
+CREATE TABLE "client_response_types"
 (
     "client_id"        TEXT NOT NULL,
     "response_type_id" TEXT NOT NULL,

@@ -9,7 +9,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import lombok.Setter;
-import ru.spbstu.university.authorizationserver.model.enums.GrantTypesEnum;
+import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 
 @Entity
 @Getter
@@ -22,5 +22,5 @@ public class GrantType {
     private String id;
     @NonNull
     @Enumerated(EnumType.STRING)
-    private GrantTypesEnum grantType;
+    private GrantTypeEnum type;
 }

@@ -10,5 +10,5 @@ import ru.spbstu.university.authorizationserver.model.Scope;
 public interface ScopeRepository extends JpaRepository<Scope, String> {
     @NonNull
     List<Scope> getScopesByNameIn(@NonNull List<String> scopeNames);
-    boolean existsAllByNameIn(@NonNull List<String> scopeNames);
+    boolean existsScopesByNameIn(@NonNull List<String> scopeNames);
 }

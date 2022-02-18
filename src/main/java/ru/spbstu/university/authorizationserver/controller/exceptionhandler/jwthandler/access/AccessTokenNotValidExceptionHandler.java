@@ -6,7 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import ru.spbstu.university.authorizationserver.controller.exceptionhandler.jwthandler.dto.JwtErrorBody;
-import ru.spbstu.university.authorizationserver.service.encyption.access.exception.AccessTokenNotValidException;
+import ru.spbstu.university.authorizationserver.service.auth.security.token.access.exception.AccessTokenNotValidException;
 
 @ControllerAdvice
 public class AccessTokenNotValidExceptionHandler {

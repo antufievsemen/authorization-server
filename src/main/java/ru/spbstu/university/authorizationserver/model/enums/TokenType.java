@@ -7,8 +7,9 @@ import lombok.NonNull;
 @Getter
 @AllArgsConstructor
 public enum TokenType {
-    JWT("JWT"), BEARER("Bearer");
+    JWT("JWT"),
+    BEARER("Bearer");
 
     @NonNull
-    private final String name;
+    private final String type;
 }

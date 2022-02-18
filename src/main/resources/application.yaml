@@ -1,4 +1,7 @@
 spring:
+  jackson:
+    mapper:
+      ACCEPT_CASE_INSENSITIVE_ENUMS: true
   datasource:
     username: demouser
     password: demopassword
@@ -11,6 +14,10 @@ spring:
     outOfOrder: true
   redis:
     port: 16379
+    host: localhost
+    database: 0
+    timeout: 60000
+
   jpa:
     showSql: true
     properties:

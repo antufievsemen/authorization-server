@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
-import ru.spbstu.university.authorizationserver.model.LogoutInfo;
+import ru.spbstu.university.authorizationserver.service.auth.dto.logout.LogoutInfo;
 import ru.spbstu.university.authorizationserver.repository.LogoutInfoRepository;
 
 @Repository
@@ -19,7 +19,7 @@ public class RedisLogoutInfoRepository implements LogoutInfoRepository {
     @Override
     public LogoutInfo create(@NonNull String id, @NonNull LogoutInfo logoutInfo) {
         logoutInfoRedisTemplate.opsForValue().set(id, logoutInfo);
-        logoutInfoRedisTemplate.expire(id, 1, TimeUnit.MINUTES);
+        logoutInfoRedisTemplate.expire(id, 3, TimeUnit.MINUTES);
         return logoutInfo;
     }
 

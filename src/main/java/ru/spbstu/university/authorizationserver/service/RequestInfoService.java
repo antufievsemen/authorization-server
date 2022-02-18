@@ -5,27 +5,27 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.spbstu.university.authorizationserver.model.RequestInfo;
-import ru.spbstu.university.authorizationserver.repository.RequestInfoRepository;
+import ru.spbstu.university.authorizationserver.model.params.AuthParams;
+import ru.spbstu.university.authorizationserver.repository.AuthRequestParamsRepository;
 
 @Service
 @Transactional
 @AllArgsConstructor
 public class RequestInfoService {
     @NonNull
-    private final RequestInfoRepository requestInfoRepository;
+    private final AuthRequestParamsRepository authRequestParamsRepository;
 
     @NonNull
-    public RequestInfo create(@NonNull String id, @NonNull RequestInfo requestInfo) {
-        return requestInfoRepository.create(id, requestInfo);
+    public AuthParams create(@NonNull String verifier, @NonNull AuthParams authParams) {
+        return authRequestParamsRepository.create(verifier, authParams);
     }
 
     @NonNull
-    public Optional<RequestInfo> get(@NonNull String challenge) {
-        return requestInfoRepository.get(challenge);
+    public Optional<AuthParams> get(@NonNull String verifier) {
+        return authRequestParamsRepository.get(verifier);
     }
 
-    public void delete(@NonNull String id) {
-        requestInfoRepository.delete(id);
+    public void delete(@NonNull String verifier) {
+        authRequestParamsRepository.delete(verifier);
     }
 }

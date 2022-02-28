@@ -8,7 +8,7 @@ import org.springframework.stereotype.Service;
 import ru.spbstu.university.authorizationserver.controller.dto.response.UserInfoResponse;
 import ru.spbstu.university.authorizationserver.model.enums.ScopeEnum;
 import ru.spbstu.university.authorizationserver.model.params.ConsentParams;
-import ru.spbstu.university.authorizationserver.service.ConsentRequestService;
+import ru.spbstu.university.authorizationserver.service.ConsentParamsService;
 import ru.spbstu.university.authorizationserver.service.auth.exception.SessionExpiredException;
 import ru.spbstu.university.authorizationserver.service.auth.exception.UserinfoPermittedException;
 import ru.spbstu.university.authorizationserver.service.auth.security.token.access.AccessTokenProvider;
@@ -18,14 +18,14 @@ import ru.spbstu.university.authorizationserver.service.exception.UserNotFoundEx
 @AllArgsConstructor
 public class UserInfoManager {
     @NonNull
-    private final ConsentRequestService consentRequestService;
+    private final ConsentParamsService consentParamsService;
     @NonNull
     private final AccessTokenProvider accessTokenProvider;
 
     @NonNull
     public UserInfoResponse getInfo(@NonNull String token, @NonNull String sessionId) {
         final Claims claims = accessTokenProvider.validate(token);
-        final ConsentParams consentParams = consentRequestService
+        final ConsentParams consentParams = consentParamsService
                 .get(sessionId).orElseThrow(SessionExpiredException::new);
 
         if (!Objects.requireNonNull(consentParams.getAuthParams().getSubject()).equals(claims.getSubject())) {

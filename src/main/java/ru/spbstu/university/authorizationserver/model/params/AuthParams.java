@@ -8,7 +8,6 @@ import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.springframework.lang.Nullable;
-import ru.spbstu.university.authorizationserver.model.User;
 import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 import ru.spbstu.university.authorizationserver.model.enums.ResponseTypeEnum;
 
@@ -18,7 +17,7 @@ import ru.spbstu.university.authorizationserver.model.enums.ResponseTypeEnum;
 @RequiredArgsConstructor
 public class AuthParams {
     @NonNull
-    private AuthClient authClient;
+    private ClientInfo clientInfo;
     @NonNull
     private List<ResponseTypeEnum> responseTypes;
     @NonNull

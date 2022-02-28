@@ -1,6 +1,5 @@
 package ru.spbstu.university.authorizationserver.service.auth.security.codeverifier;
 
-import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Base64;
 import javax.crypto.BadPaddingException;
@@ -11,7 +10,7 @@ import javax.crypto.spec.SecretKeySpec;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
-import ru.spbstu.university.authorizationserver.service.generator.exception.CodeVerifierNotValidException;
+import ru.spbstu.university.authorizationserver.service.exception.CodeVerifierNotValidException;
 
 @Service
 public class CodeVerifierProvider {

@@ -8,7 +8,7 @@ import lombok.NonNull;
 @AllArgsConstructor
 public enum TokenEnum {
     ACCESS_TOKEN("access_token"),
-    OPENID_TOKEN("openid_token"),
+    ID_TOKEN("id_token"),
     REFRESH_TOKEN("refresh_token");
 
     @NonNull

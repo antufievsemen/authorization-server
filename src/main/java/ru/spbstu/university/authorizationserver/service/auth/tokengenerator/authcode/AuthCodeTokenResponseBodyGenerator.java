@@ -16,7 +16,7 @@ import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 import ru.spbstu.university.authorizationserver.model.enums.ScopeEnum;
 import ru.spbstu.university.authorizationserver.model.params.AuthParams;
 import ru.spbstu.university.authorizationserver.model.params.ConsentParams;
-import ru.spbstu.university.authorizationserver.service.ConsentRequestService;
+import ru.spbstu.university.authorizationserver.service.ConsentParamsService;
 import ru.spbstu.university.authorizationserver.service.auth.dto.token.TokenResponseBody;
 import ru.spbstu.university.authorizationserver.service.auth.exception.GrantTypeNotValidException;
 import ru.spbstu.university.authorizationserver.service.auth.security.authcode.exception.AuthCodeIsNotValidException;
@@ -31,7 +31,7 @@ import ru.spbstu.university.authorizationserver.service.exception.CallbackNotVal
 @AllArgsConstructor
 public class AuthCodeTokenResponseBodyGenerator {
     @NonNull
-    private final ConsentRequestService consentRequestService;
+    private final ConsentParamsService consentParamsService;
     @NonNull
     private final AccessTokenProvider accessTokenProvider;
     @NonNull
@@ -84,7 +84,7 @@ public class AuthCodeTokenResponseBodyGenerator {
 
         final AccessTokenProvider.TokenInfo jwt =
                 accessTokenProvider.createJwt(Objects.requireNonNull(authParams.getSubject()),
-                        authParams.getAuthClient().getClientId(), sessionId, authParams.getNonce(),
+                        authParams.getClientInfo().getClientId(), sessionId, authParams.getNonce(),
                         consentParams.getAud(), Objects.requireNonNull(consentParams.getScopes()));
 
         tokenResponseBody.getAttributes().add("access_token", jwt.getToken());
@@ -110,9 +110,9 @@ public class AuthCodeTokenResponseBodyGenerator {
         if (!collectedGrantTypes.containsAll(grantTypes)) {
             throw new GrantTypeNotValidException();
         }
-        final ConsentParams consentParams = consentRequestService.get(Objects.requireNonNull(code))
+        final ConsentParams consentParams = consentParamsService.get(code)
                 .orElseThrow(AuthCodeIsNotValidException::new);
-        consentRequestService.delete(code);
+        consentParamsService.delete(code);
 
         if (Objects.isNull(redirectUri) || !consentParams.getAuthParams().getRedirectUri().equals(redirectUri)) {
             throw new CallbackNotValidException();

@@ -13,7 +13,6 @@ import ru.spbstu.university.authorizationserver.controller.dto.request.Introspec
 import ru.spbstu.university.authorizationserver.controller.dto.request.RevokeRequest;
 import ru.spbstu.university.authorizationserver.controller.dto.request.TokenRequest;
 import ru.spbstu.university.authorizationserver.controller.dto.response.IntrospectResponse;
-import ru.spbstu.university.authorizationserver.service.RequestInfoService;
 import ru.spbstu.university.authorizationserver.service.auth.IntrospectManager;
 import ru.spbstu.university.authorizationserver.service.auth.RevokeManager;
 import ru.spbstu.university.authorizationserver.service.auth.TokenManager;
@@ -23,7 +22,6 @@ import ru.spbstu.university.authorizationserver.service.auth.dto.token.TokenResp
 @RestController
 @AllArgsConstructor
 public class TokenController {
-
     @NonNull
     private final TokenManager tokenManager;
     @NonNull

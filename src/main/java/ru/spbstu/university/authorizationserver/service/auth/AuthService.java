@@ -13,7 +13,7 @@ import ru.spbstu.university.authorizationserver.model.User;
 import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 import ru.spbstu.university.authorizationserver.model.enums.ResponseTypeEnum;
 import ru.spbstu.university.authorizationserver.model.enums.ScopeEnum;
-import ru.spbstu.university.authorizationserver.model.params.AuthClient;
+import ru.spbstu.university.authorizationserver.model.params.ClientInfo;
 import ru.spbstu.university.authorizationserver.model.params.AuthParams;
 import ru.spbstu.university.authorizationserver.service.ClientService;
 import ru.spbstu.university.authorizationserver.service.UserService;
@@ -29,7 +29,7 @@ public class AuthService {
     @NonNull
     private final ClientService clientService;
     @NonNull
-    private final AuthFlowManagerService authFlowManagerService;
+    private final AuthFlowManager authFlowManager;
     @NonNull
     private final LogoutManagerService logoutManagerService;
     @NonNull
@@ -49,20 +49,20 @@ public class AuthService {
                                       @NonNull Optional<String> loginVerifier) {
         if (consentVerifier.isPresent()) {
             codeVerifierProvider.validate(consentVerifier.get());
-            return authFlowManagerService.endFlow(consentVerifier.get());
+            return authFlowManager.endFlow(consentVerifier.get());
         }
 
         if (loginVerifier.isPresent()) {
             codeVerifierProvider.validate(loginVerifier.get());
-            return authFlowManagerService.consentFlow(loginVerifier.get());
+            return authFlowManager.consentFlow(loginVerifier.get());
         }
 
         final AuthParams authParams =
                 validateRequestParams(clientId, responseTypes, redirectUri, scopes, state, nonce, sessionId);
         final Optional<User> user = userService.getBySessionId(sessionId);
 
-        return user.map(userValue -> authFlowManagerService.consentFlow(userValue, authParams))
-                .orElseGet(() -> authFlowManagerService.initFlow(authParams, codeChallenge, codeChallengeMethod));
+        return user.map(userValue -> authFlowManager.consentFlow(userValue, authParams))
+                .orElseGet(() -> authFlowManager.initFlow(authParams, codeChallenge, codeChallengeMethod));
     }
 
     private AuthParams validateRequestParams(@Nullable String clientId, @Nullable List<String> responseTypes,
@@ -79,10 +79,10 @@ public class AuthService {
         final List<GrantTypeEnum> grantTypes =
                 getGrantType(Objects.requireNonNull(responseTypeEnums), Objects.requireNonNull(scopes));
 
-        final AuthClient authClient = clientService.validate(Objects.requireNonNull(clientId), responseTypeEnums,
+        final ClientInfo clientInfo = clientService.validate(Objects.requireNonNull(clientId), responseTypeEnums,
                 grantTypes, scopes, Objects.requireNonNull(redirectUri));
 
-        return new AuthParams(authClient, responseTypeEnums, grantTypes, scopes, redirectUri, state, nonce, sessionId);
+        return new AuthParams(clientInfo, responseTypeEnums, grantTypes, scopes, redirectUri, state, nonce, sessionId);
     }
 
     @NonNull

@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.spbstu.university.authorizationserver.model.params.AuthClient;
+import ru.spbstu.university.authorizationserver.model.params.ClientInfo;
 import ru.spbstu.university.authorizationserver.model.Callback;
 import ru.spbstu.university.authorizationserver.model.Client;
 import ru.spbstu.university.authorizationserver.model.GrantType;
@@ -95,7 +95,7 @@ public class ClientService {
     }
 
     @NonNull
-    public AuthClient validate(@NonNull String clientId, @NonNull List<ResponseTypeEnum> responseTypes,
+    public ClientInfo validate(@NonNull String clientId, @NonNull List<ResponseTypeEnum> responseTypes,
                                @NonNull List<GrantTypeEnum> grantTypes, @NonNull List<String> scopes,
                                @NonNull String callback) {
         final Client client = getByClientId(clientId);
@@ -103,7 +103,7 @@ public class ClientService {
         final List<String> validScopes = scopeService.validate(client.getScopes(), scopes);
         final String validCallback = callbackService.validate(client.getCallbacks(), callback);
 
-        return new AuthClient(clientId, grantTypes, validResponseTypes, validScopes, validCallback);
+        return new ClientInfo(clientId, grantTypes, validResponseTypes, validScopes, validCallback);
     }
 
 

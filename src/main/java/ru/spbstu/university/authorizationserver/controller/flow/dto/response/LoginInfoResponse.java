@@ -1,24 +1,29 @@
-package ru.spbstu.university.authorizationserver.service.auth.dto.loginconsent;
+package ru.spbstu.university.authorizationserver.controller.flow.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
 import ru.spbstu.university.authorizationserver.model.params.ClientInfo;
 import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
-import ru.spbstu.university.authorizationserver.model.enums.ResponseTypeEnum;
 
 @Getter
 @AllArgsConstructor
-public class LoginInfo {
+public class LoginInfoResponse {
     @NonNull
+    @JsonProperty("client")
     private final ClientInfo clientInfo;
     @NonNull
-    private final List<ResponseTypeEnum> responseTypes;
+    @JsonProperty("response_types")
+    private final List<String> responseTypes;
     @NonNull
+    @JsonProperty("scopes")
     private final List<String> scopes;
     @NonNull
-    private final List<GrantTypeEnum> grantTypes;
-    @NonNull
+    @JsonProperty("redirect_uri")
     private final String redirectUri;
+    @NonNull
+    @JsonProperty("grant_types")
+    private final List<GrantTypeEnum> grantTypes;
 }

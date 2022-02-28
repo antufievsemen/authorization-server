@@ -7,8 +7,8 @@ import org.springframework.stereotype.Service;
 import ru.spbstu.university.authorizationserver.config.RedirectSettings;
 import ru.spbstu.university.authorizationserver.service.auth.dto.logout.LogoutInfo;
 import ru.spbstu.university.authorizationserver.model.User;
-import ru.spbstu.university.authorizationserver.service.ConsentRequestService;
-import ru.spbstu.university.authorizationserver.service.RequestInfoService;
+import ru.spbstu.university.authorizationserver.service.ConsentParamsService;
+import ru.spbstu.university.authorizationserver.service.AuthParamsService;
 import ru.spbstu.university.authorizationserver.service.UserService;
 import ru.spbstu.university.authorizationserver.service.auth.dto.redirect.RedirectResponse;
 import ru.spbstu.university.authorizationserver.service.auth.dto.redirect.logout.LogoutRedirect;
@@ -23,9 +23,9 @@ public class LogoutManagerService {
     @NonNull
     private final RedirectSettings settings;
     @NonNull
-    private final ConsentRequestService consentRequestService;
+    private final ConsentParamsService consentParamsService;
     @NonNull
-    private final RequestInfoService requestInfoService;
+    private final AuthParamsService authParamsService;
     @NonNull
     private final UserService userService;
     @NonNull
@@ -42,8 +42,8 @@ public class LogoutManagerService {
         }
 
         user.ifPresent(value -> userService.delete(value.getId()));
-        consentRequestService.delete(sessionId);
-        requestInfoService.delete(sessionId);
+        consentParamsService.delete(sessionId);
+        authParamsService.delete(sessionId);
 
         return new LogoutResponse(redirectUri.orElse(""));
     }

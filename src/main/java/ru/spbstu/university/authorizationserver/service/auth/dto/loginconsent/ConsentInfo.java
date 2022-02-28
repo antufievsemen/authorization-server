@@ -4,8 +4,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
-import ru.spbstu.university.authorizationserver.model.params.AuthClient;
-import ru.spbstu.university.authorizationserver.model.User;
+import ru.spbstu.university.authorizationserver.model.params.ClientInfo;
 import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 import ru.spbstu.university.authorizationserver.model.enums.ResponseTypeEnum;
 
@@ -15,7 +14,7 @@ public class ConsentInfo {
     @NonNull
     private final String subject;
     @NonNull
-    private final AuthClient authClient;
+    private final ClientInfo clientInfo;
     @NonNull
     private final List<GrantTypeEnum> grantTypes;
     @NonNull

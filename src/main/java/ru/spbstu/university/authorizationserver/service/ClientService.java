@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.spbstu.university.authorizationserver.model.params.ClientInfo;
+import ru.spbstu.university.authorizationserver.model.ClientInfo;
 import ru.spbstu.university.authorizationserver.model.Callback;
 import ru.spbstu.university.authorizationserver.model.Client;
 import ru.spbstu.university.authorizationserver.model.GrantType;

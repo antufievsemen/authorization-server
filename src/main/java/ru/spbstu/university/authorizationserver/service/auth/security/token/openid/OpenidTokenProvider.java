@@ -5,8 +5,6 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import java.security.KeyPair;
-import java.security.KeyPairGenerator;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
@@ -16,11 +14,16 @@ import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.spbstu.university.authorizationserver.config.SelfIssuerSettings;
+import ru.spbstu.university.authorizationserver.model.KeySet;
+import ru.spbstu.university.authorizationserver.model.User;
+import ru.spbstu.university.authorizationserver.model.enums.TokenEnum;
 import ru.spbstu.university.authorizationserver.service.UserService;
-import ru.spbstu.university.authorizationserver.service.auth.security.token.openid.exception.OpenidTokenIsNotActiveException;
-import ru.spbstu.university.authorizationserver.service.auth.security.token.openid.exception.OpenidTokenWithNotExistUserException;
+import ru.spbstu.university.authorizationserver.service.auth.security.JwksService;
 import ru.spbstu.university.authorizationserver.service.auth.security.token.access.exception.AccessTokenNotValidException;
+import ru.spbstu.university.authorizationserver.service.auth.security.token.openid.exception.OpenidTokenIsNotActiveException;
 import ru.spbstu.university.authorizationserver.service.auth.security.token.openid.exception.OpenidTokenNotValidException;
+import ru.spbstu.university.authorizationserver.service.auth.security.token.openid.exception.OpenidTokenWithNotExistUserException;
+import ru.spbstu.university.authorizationserver.service.exception.ClientNotFoundException;
 import ru.spbstu.university.authorizationserver.service.generator.Generator;
 
 @Service
@@ -30,26 +33,29 @@ public class OpenidTokenProvider {
     @NonNull
     private final Generator<String> idGenerator;
     private final long VALIDITY_TIME_IN_MS;
-    private final KeyPair keyPair;
     @NonNull
     private final SelfIssuerSettings settings;
+    @NonNull
+    private final JwksService jwksService;
 
     @SneakyThrows
     @Autowired
-    public OpenidTokenProvider(@NonNull UserService userService, @NonNull Generator<String> idGenerator, @NonNull SelfIssuerSettings settings) {
+    public OpenidTokenProvider(@NonNull UserService userService, @NonNull Generator<String> idGenerator,
+                               @NonNull SelfIssuerSettings settings, @NonNull JwksService jwksService) {
         this.userService = userService;
         this.idGenerator = idGenerator;
         this.settings = settings;
+        this.jwksService = jwksService;
         this.VALIDITY_TIME_IN_MS = 1000 * 60 * 10;
-
-        KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA");
-        this.keyPair = keyPairGenerator.generateKeyPair();
     }
 
     @NonNull
     public String create(@NonNull String sub, @NonNull String nonce, @NonNull String sessionId,
-                         @NonNull String accessTokenHash, @NonNull LocalDateTime authAt, @NonNull Map<String, String> claims) {
-        userService.get(sub).orElseThrow(OpenidTokenWithNotExistUserException::new);
+                         @NonNull String accessTokenHash, @NonNull LocalDateTime authAt,
+                         @NonNull Map<String, String> claims) {
+        final User user = userService.get(sub).orElseThrow(OpenidTokenWithNotExistUserException::new);
+        final KeySet keySet = jwksService.getByClientId(user.getClient().getClientId(), TokenEnum.ACCESS_TOKEN)
+                .orElseThrow(ClientNotFoundException::new);
         final Map<String, Object> map = new HashMap<>(claims);
         map.put("at_hash", accessTokenHash);
         map.put("nonce", nonce);
@@ -67,27 +73,30 @@ public class OpenidTokenProvider {
                 .setExpiration(expiredTime)
                 .setNotBefore(now)
                 .setHeaderParam("typ", "JWT")
-                .signWith(SignatureAlgorithm.RS256, keyPair.getPrivate())
+                .signWith(SignatureAlgorithm.RS256, keySet.getPrivateKey())
                 .compact();
     }
 
     @NonNull
-    public Claims validate(@NonNull String token, @NonNull String accessTokenHash) throws OpenidTokenIsNotActiveException, OpenidTokenNotValidException {
-        Jws<Claims> claims = getClaims(token);
-        final boolean isExpired = claims.getBody().getExpiration().after(new Date());
+    public Claims validate(@NonNull String token, @NonNull String accessTokenHash,
+                           @NonNull String clientId) throws OpenidTokenNotValidException {
+        final KeySet keySet = jwksService.getByClientId(clientId, TokenEnum.ACCESS_TOKEN)
+                .orElseThrow(ClientNotFoundException::new);
+        Jws<Claims> claims = getClaims(token, keySet);
+
         final String at_hash = (String) claims.getBody().get("at_hash");
         if (!at_hash.equals(accessTokenHash)) {
             throw new OpenidTokenNotValidException();
-        } else if (isExpired) {
-            throw new OpenidTokenIsNotActiveException();
         }
 
         return claims.getBody();
     }
 
     @NonNull
-    public Claims validate(@NonNull String token) throws OpenidTokenIsNotActiveException {
-        Jws<Claims> claims = getClaims(token);
+    public Claims validate(@NonNull String token, @NonNull String clientId) throws OpenidTokenIsNotActiveException {
+        final KeySet keySet = jwksService.getByClientId(clientId, TokenEnum.ACCESS_TOKEN)
+                .orElseThrow(ClientNotFoundException::new);
+        Jws<Claims> claims = getClaims(token, keySet);
         final boolean isExpired = claims.getBody().getExpiration().after(new Date());
         if (isExpired) {
             throw new OpenidTokenIsNotActiveException();
@@ -97,14 +106,11 @@ public class OpenidTokenProvider {
     }
 
     @NonNull
-    private Jws<Claims> getClaims(@NonNull String token) {
-        Jws<Claims> claims;
+    private Jws<Claims> getClaims(@NonNull String token, @NonNull KeySet keySet) {
         try {
-            claims = Jwts.parser().setSigningKey(keyPair.getPrivate()).parseClaimsJws(token);
+            return Jwts.parser().setSigningKey(keySet.getPrivateKey()).parseClaimsJws(token);
         } catch (JwtException | IllegalArgumentException e) {
             throw new AccessTokenNotValidException();
         }
-
-        return claims;
     }
 }

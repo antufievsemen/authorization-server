@@ -2,7 +2,7 @@ package ru.spbstu.university.authorizationserver.repository;
 
 import java.util.Optional;
 import lombok.NonNull;
-import ru.spbstu.university.authorizationserver.model.params.ConsentParams;
+import ru.spbstu.university.authorizationserver.model.ConsentParams;
 
 public interface ConsentRequestParamsRepository {
     @NonNull

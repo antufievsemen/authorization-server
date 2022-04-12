@@ -2,16 +2,14 @@ package ru.spbstu.university.authorizationserver.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.GenericToStringSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import ru.spbstu.university.authorizationserver.model.params.AuthParams;
-import ru.spbstu.university.authorizationserver.model.params.ConsentParams;
-import ru.spbstu.university.authorizationserver.model.params.PkceRequestParams;
+import ru.spbstu.university.authorizationserver.model.AuthParams;
+import ru.spbstu.university.authorizationserver.model.CompletedParams;
+import ru.spbstu.university.authorizationserver.model.ConsentParams;
+import ru.spbstu.university.authorizationserver.model.PkceParams;
 import ru.spbstu.university.authorizationserver.service.auth.dto.logout.LogoutInfo;
 
 @Configuration
@@ -36,8 +34,8 @@ public class RedisLettuceConfig {
 
     @Bean
     //sessionId - pkce request
-    public RedisTemplate<String, PkceRequestParams> pkceRequestRedisTemplate(LettuceConnectionFactory connectionFactory) {
-        final RedisTemplate<String, PkceRequestParams> template = new RedisTemplate<>();
+    public RedisTemplate<String, PkceParams> pkceRequestRedisTemplate(LettuceConnectionFactory connectionFactory) {
+        final RedisTemplate<String, PkceParams> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
@@ -67,6 +65,16 @@ public class RedisLettuceConfig {
     //session- consent request params
     public RedisTemplate<String, ConsentParams> consentRequestParamsRedisTemplate(LettuceConnectionFactory connectionFactory) {
         final RedisTemplate<String, ConsentParams> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        template.setEnableTransactionSupport(true);
+        return template;
+    }
+
+    @Bean
+    public RedisTemplate<String, CompletedParams> completedRequestParamsRedisTemplate(LettuceConnectionFactory connectionFactory) {
+        final RedisTemplate<String, CompletedParams> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new GenericJackson2JsonRedisSerializer());

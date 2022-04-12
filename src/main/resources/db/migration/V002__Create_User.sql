@@ -1,4 +1,4 @@
-CREATE TABLE "users"
+CREATE TABLE "user"
 (
     "id"         TEXT PRIMARY KEY,
     "client_id"  TEXT        NOT NULL,

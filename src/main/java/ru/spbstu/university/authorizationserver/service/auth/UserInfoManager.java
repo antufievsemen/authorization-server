@@ -7,7 +7,7 @@ import lombok.NonNull;
 import org.springframework.stereotype.Service;
 import ru.spbstu.university.authorizationserver.controller.dto.response.UserInfoResponse;
 import ru.spbstu.university.authorizationserver.model.enums.ScopeEnum;
-import ru.spbstu.university.authorizationserver.model.params.ConsentParams;
+import ru.spbstu.university.authorizationserver.model.ConsentParams;
 import ru.spbstu.university.authorizationserver.service.ConsentParamsService;
 import ru.spbstu.university.authorizationserver.service.auth.exception.SessionExpiredException;
 import ru.spbstu.university.authorizationserver.service.auth.exception.UserinfoPermittedException;

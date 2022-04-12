@@ -1,4 +1,4 @@
-package ru.spbstu.university.authorizationserver.model.params;
+package ru.spbstu.university.authorizationserver.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -6,7 +6,7 @@ import lombok.NonNull;
 
 @Getter
 @AllArgsConstructor
-public class PkceRequestParams {
+public class PkceParams {
     @NonNull
     private final String codeChallenge;
     @NonNull

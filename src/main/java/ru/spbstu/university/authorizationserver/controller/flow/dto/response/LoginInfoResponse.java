@@ -5,7 +5,7 @@ import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
-import ru.spbstu.university.authorizationserver.model.params.ClientInfo;
+import ru.spbstu.university.authorizationserver.model.ClientInfo;
 import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 
 @Getter

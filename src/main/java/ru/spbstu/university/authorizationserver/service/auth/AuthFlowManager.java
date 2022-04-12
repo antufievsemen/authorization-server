@@ -7,13 +7,17 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 import ru.spbstu.university.authorizationserver.config.RedirectSettings;
+import ru.spbstu.university.authorizationserver.model.AuthParams;
+import ru.spbstu.university.authorizationserver.model.CompletedParams;
+import ru.spbstu.university.authorizationserver.model.ConsentParams;
+import ru.spbstu.university.authorizationserver.model.PkceParams;
 import ru.spbstu.university.authorizationserver.model.User;
 import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 import ru.spbstu.university.authorizationserver.model.enums.ResponseTypeEnum;
-import ru.spbstu.university.authorizationserver.model.params.AuthParams;
-import ru.spbstu.university.authorizationserver.model.params.ConsentParams;
 import ru.spbstu.university.authorizationserver.service.AuthParamsService;
+import ru.spbstu.university.authorizationserver.service.CompletedParamsService;
 import ru.spbstu.university.authorizationserver.service.ConsentParamsService;
+import ru.spbstu.university.authorizationserver.service.PkceParamsService;
 import ru.spbstu.university.authorizationserver.service.auth.dto.redirect.RedirectResponse;
 import ru.spbstu.university.authorizationserver.service.auth.dto.redirect.auth.RedirectAccessTokenResponse;
 import ru.spbstu.university.authorizationserver.service.auth.dto.redirect.auth.RedirectCodeResponse;
@@ -39,6 +43,10 @@ public class AuthFlowManager {
     private final AccessTokenProvider accessTokenProvider;
     @NonNull
     private final AuthParamsService authParamsService;
+    @NonNull
+    private final PkceParamsService pkceParamsService;
+    @NonNull
+    private final CompletedParamsService completedParamsService;
 
     @NonNull
     public RedirectResponse initFlow(@NonNull AuthParams authParams,
@@ -47,22 +55,24 @@ public class AuthFlowManager {
         if (authParams.getGrantTypes()
                 .containsAll(List.of(GrantTypeEnum.AUTHORIZATION_CODE, GrantTypeEnum.REFRESH_TOKEN))
                 && codeChallenge.isPresent() && codeChallengeMethod.isPresent()) {
-            authParams.setPkceParams(codeChallenge.get(), codeChallengeMethod.get());
+            pkceParamsService.create(authParams.getState(), new PkceParams(codeChallenge.get(), codeChallengeMethod.get()));
         }
+
         final String verifier = codeVerifierProvider.generate();
         authParamsService.create(verifier, authParams);
+
         return new LoginRedirect(verifier, settings.getLogin());
     }
 
     @NonNull
-    public RedirectResponse consentFlow(@NonNull String loginVerifier) {
+    public RedirectResponse consentFlow(@NonNull User user, @NonNull String loginVerifier) {
         final AuthParams authParams = authParamsService.get(loginVerifier)
                 .orElseThrow(SessionExpiredException::new);
         authParamsService.delete(loginVerifier);
 
         final String verifier = codeVerifierProvider.generate();
         consentParamsService.create(verifier,
-                new ConsentParams(authParams));
+                new ConsentParams(authParams, user));
 
         return new ConsentRedirect(verifier, settings.getConsent());
     }
@@ -70,32 +80,32 @@ public class AuthFlowManager {
     @NonNull
     public RedirectResponse consentFlow(@NonNull User user, @NonNull AuthParams authParams) {
         final String verifier = codeVerifierProvider.generate();
-        authParams.setSubject(user.getId());
-        consentParamsService.create(verifier, new ConsentParams(authParams));
+        consentParamsService.create(verifier, new ConsentParams(authParams, user));
+
         return new ConsentRedirect(verifier, settings.getConsent());
     }
 
     @NonNull
     public RedirectResponse endFlow(@NonNull String verifier) {
-        final ConsentParams consentParams = consentParamsService.get(verifier)
+        final CompletedParams completedParams = completedParamsService.get(verifier)
                 .orElseThrow(SessionExpiredException::new);
-        consentParamsService.delete(verifier);
-        final AuthParams authParams = consentParams.getAuthParams();
+        completedParamsService.delete(verifier);
+        final AuthParams authParams = completedParams.getConsentParams().getAuthParams();
         final List<GrantTypeEnum> grantTypes = authParams.getGrantTypes();
         final List<ResponseTypeEnum> responseTypes = authParams.getResponseTypes();
 
         if (grantTypes.contains(GrantTypeEnum.IMPLICIT) && responseTypes.contains(ResponseTypeEnum.TOKEN)) {
             final AccessTokenProvider.TokenInfo jwt = accessTokenProvider
-                    .createJwt(Objects.requireNonNull(authParams.getSubject()),
-                            authParams.getClientInfo().getClientId(), authParams.getSessionId(), authParams.getNonce(),
-                            consentParams.getAud(), Objects.requireNonNull(consentParams.getScopes()));
+                    .createJwt(completedParams.getConsentParams().getUser().getId(),
+                            authParams.getClientInfo().getClientId(), authParams.getSessionId(),
+                            completedParams.getAud(), Objects.requireNonNull(completedParams.getScopes()));
 
             return new RedirectAccessTokenResponse(authParams.getState(), jwt.getToken(), jwt.getExpiresIn(),
                     jwt.getScopes(), authParams.getRedirectUri());
         }
 
         final String code = authCodeProvider.generate();
-        consentParamsService.create(code, consentParams);
+        completedParamsService.create(code, completedParams);
         return new RedirectCodeResponse(code, authParams.getRedirectUri(),
                 authParams.getState());
     }

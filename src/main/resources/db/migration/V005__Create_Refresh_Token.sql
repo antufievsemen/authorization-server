@@ -7,5 +7,5 @@ CREATE TABLE "refresh_token"
     "updated_at" TIMESTAMP NOT NULL,
     "expired_at" TIMESTAMP NOT NULL,
 
-    CONSTRAINT "fk__refresh_token__user__user_id" FOREIGN KEY ("user_id") REFERENCES "users" ("id")
+    CONSTRAINT "fk__refresh_token__user__user_id" FOREIGN KEY ("user_id") REFERENCES "user" ("id")
 )

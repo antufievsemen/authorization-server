@@ -9,21 +9,22 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
+import ru.spbstu.university.authorizationserver.model.AuthParams;
 import ru.spbstu.university.authorizationserver.model.User;
 import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 import ru.spbstu.university.authorizationserver.model.enums.ResponseTypeEnum;
 import ru.spbstu.university.authorizationserver.model.enums.ScopeEnum;
-import ru.spbstu.university.authorizationserver.model.params.ClientInfo;
-import ru.spbstu.university.authorizationserver.model.params.AuthParams;
+import ru.spbstu.university.authorizationserver.model.ClientInfo;
 import ru.spbstu.university.authorizationserver.service.ClientService;
 import ru.spbstu.university.authorizationserver.service.UserService;
 import ru.spbstu.university.authorizationserver.service.auth.dto.redirect.RedirectResponse;
 import ru.spbstu.university.authorizationserver.service.auth.exception.RequestParamsNotValidException;
 import ru.spbstu.university.authorizationserver.service.auth.security.codeverifier.CodeVerifierProvider;
+import ru.spbstu.university.authorizationserver.service.exception.UserNotFoundException;
 
 @Service
 @AllArgsConstructor
-public class AuthService {
+public class AuthProvider {
     @NonNull
     private final UserService userService;
     @NonNull
@@ -36,15 +37,11 @@ public class AuthService {
     private final CodeVerifierProvider codeVerifierProvider;
 
     @NonNull
-    public RedirectResponse authorize(@Nullable String clientId,
-                                      @Nullable List<String> responseTypes,
-                                      @Nullable String redirectUri,
-                                      @Nullable List<String> scopes,
-                                      @Nullable String state,
-                                      @Nullable String nonce,
+    public RedirectResponse authorize(@NonNull String clientId, @NonNull List<String> responseTypes,
+                                      @NonNull String redirectUri, @NonNull List<String> scopes,
+                                      @NonNull String state, @Nullable String nonce,
                                       @NonNull Optional<String> codeChallenge,
-                                      @NonNull Optional<String> codeChallengeMethod,
-                                      @NonNull String sessionId,
+                                      @NonNull Optional<String> codeChallengeMethod, @NonNull String sessionId,
                                       @NonNull Optional<String> consentVerifier,
                                       @NonNull Optional<String> loginVerifier) {
         if (consentVerifier.isPresent()) {
@@ -54,25 +51,26 @@ public class AuthService {
 
         if (loginVerifier.isPresent()) {
             codeVerifierProvider.validate(loginVerifier.get());
-            return authFlowManager.consentFlow(loginVerifier.get());
+            final User user = userService.getBySessionId(sessionId).orElseThrow(UserNotFoundException::new);
+            return authFlowManager.consentFlow(user, loginVerifier.get());
         }
 
         final AuthParams authParams =
-                validateRequestParams(clientId, responseTypes, redirectUri, scopes, state, nonce, sessionId);
+                validateAuthParams(clientId, responseTypes, redirectUri, scopes, state, nonce, sessionId);
         final Optional<User> user = userService.getBySessionId(sessionId);
 
         return user.map(userValue -> authFlowManager.consentFlow(userValue, authParams))
                 .orElseGet(() -> authFlowManager.initFlow(authParams, codeChallenge, codeChallengeMethod));
     }
 
-    private AuthParams validateRequestParams(@Nullable String clientId, @Nullable List<String> responseTypes,
-                                             @Nullable String redirectUri, @Nullable List<String> scopes,
-                                             @Nullable String state, @Nullable String nonce, @NonNull String sessionId) {
-        if (Objects.isNull(clientId) || Objects.isNull(responseTypes)
-                || Objects.isNull(redirectUri) || Objects.isNull(scopes)
-                || Objects.isNull(state) || Objects.isNull(nonce)) {
+    @NonNull
+    private AuthParams validateAuthParams(@NonNull String clientId, @NonNull List<String> responseTypes,
+                                          @NonNull String redirectUri, @NonNull List<String> scopes,
+                                          @NonNull String state, @Nullable String nonce, @NonNull String sessionId) {
+        if (scopes.contains(ScopeEnum.OPENID.getName()) && Objects.isNull(nonce)) {
             throw new RequestParamsNotValidException();
         }
+
         final List<ResponseTypeEnum> responseTypeEnums = responseTypes.stream()
                 .map(s -> ResponseTypeEnum.valueOf(s.toUpperCase()))
                 .collect(Collectors.toList());
@@ -82,7 +80,7 @@ public class AuthService {
         final ClientInfo clientInfo = clientService.validate(Objects.requireNonNull(clientId), responseTypeEnums,
                 grantTypes, scopes, Objects.requireNonNull(redirectUri));
 
-        return new AuthParams(clientInfo, responseTypeEnums, grantTypes, scopes, redirectUri, state, nonce, sessionId);
+        return new AuthParams(clientInfo, responseTypeEnums, grantTypes, scopes, redirectUri, state, sessionId, nonce);
     }
 
     @NonNull

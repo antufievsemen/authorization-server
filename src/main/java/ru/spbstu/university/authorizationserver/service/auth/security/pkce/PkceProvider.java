@@ -7,7 +7,7 @@ import java.util.Base64;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
-import ru.spbstu.university.authorizationserver.model.params.AuthParams;
+import ru.spbstu.university.authorizationserver.model.AuthParams;
 import ru.spbstu.university.authorizationserver.service.auth.security.pkce.exception.CodeChallengeMethodIncorrectException;
 import ru.spbstu.university.authorizationserver.service.auth.security.pkce.exception.PkceAuthIncorrectException;
 

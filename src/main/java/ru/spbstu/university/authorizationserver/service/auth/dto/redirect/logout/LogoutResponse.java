@@ -1,9 +1,12 @@
 package ru.spbstu.university.authorizationserver.service.auth.dto.redirect.logout;
 
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
+import org.springframework.lang.Nullable;
 import ru.spbstu.university.authorizationserver.service.auth.dto.redirect.RedirectResponse;
 
 @Getter
@@ -11,6 +14,8 @@ import ru.spbstu.university.authorizationserver.service.auth.dto.redirect.Redire
 public class LogoutResponse implements RedirectResponse {
     @NonNull
     private final String redirectUri;
+    @Nullable
+    private final String state;
 
     @NonNull
     @Override
@@ -21,6 +26,12 @@ public class LogoutResponse implements RedirectResponse {
     @NonNull
     @Override
     public Map<String, Object> getRedirectAttributes() {
-        return Map.of();
+        final Map<String, Object> map = new HashMap<>();
+
+        if (Objects.nonNull(state)) {
+            map.put("state", state);
+        }
+
+        return map;
     }
 }

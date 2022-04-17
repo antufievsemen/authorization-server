@@ -14,7 +14,6 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.spbstu.university.authorizationserver.config.SelfIssuerSettings;
 import ru.spbstu.university.authorizationserver.controller.annotation.ApiV1;
 import ru.spbstu.university.authorizationserver.controller.flow.dto.request.ConsentRequest;
-import ru.spbstu.university.authorizationserver.controller.flow.dto.response.ConsentRedirectResponse;
 import ru.spbstu.university.authorizationserver.controller.flow.dto.response.ConsentInfoResponse;
 import ru.spbstu.university.authorizationserver.model.enums.ResponseTypeEnum;
 import ru.spbstu.university.authorizationserver.service.auth.FlowSessionManager;
@@ -38,8 +37,8 @@ public class ConsentController {
 
     @ResponseStatus(HttpStatus.OK)
     @PutMapping("/oauth2/auth/requests/consent/accept")
-    public ConsentRedirectResponse accept(@RequestParam(name = "consent_verifier") String consentVerifier,
-                                          @RequestBody ConsentRequest request) {
+    public String accept(@RequestParam(name = "consent_verifier") String consentVerifier,
+                         @RequestBody ConsentRequest request) {
         return getConsentAcceptResponse(flowSessionManager.acceptConsent(consentVerifier,
                 request.getPermittedScopes(), request.getPermittedAudience(), request.getUserinfo()));
     }
@@ -52,10 +51,10 @@ public class ConsentController {
     }
 
     @NonNull
-    private ConsentRedirectResponse getConsentAcceptResponse(@NonNull ConsentAccept consentAccept) {
-        return new ConsentRedirectResponse(new DefaultUriBuilderFactory(settings.getIssuer())
+    private String getConsentAcceptResponse(@NonNull ConsentAccept consentAccept) {
+        return new DefaultUriBuilderFactory(settings.getIssuer())
                 .uriString("/v1/oauth2/auth")
                 .queryParams(consentAccept.getAttributes())
-                .build().toASCIIString());
+                .build().toASCIIString();
     }
 }

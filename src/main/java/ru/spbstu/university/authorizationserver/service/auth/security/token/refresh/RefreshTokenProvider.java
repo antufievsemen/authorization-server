@@ -2,7 +2,6 @@ package ru.spbstu.university.authorizationserver.service.auth.security.token.ref
 
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
-import java.time.LocalDateTime;
 import java.util.Base64;
 import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
@@ -13,7 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.spbstu.university.authorizationserver.model.RefreshToken;
 import ru.spbstu.university.authorizationserver.service.RefreshTokenService;
-import ru.spbstu.university.authorizationserver.service.auth.security.token.refresh.exception.RefreshTokenExpiredException;
 import ru.spbstu.university.authorizationserver.service.auth.security.token.refresh.exception.RefreshTokenNotValidException;
 
 
@@ -64,15 +62,9 @@ public class RefreshTokenProvider {
     }
 
     @NonNull
-    public RefreshToken validateRawToken(@NonNull String token) throws RefreshTokenExpiredException, RefreshTokenNotValidException {
-        final LocalDateTime now = LocalDateTime.now();
-        final RefreshToken userRefreshToken = refreshTokenService.getByToken(token).orElseThrow(RefreshTokenNotValidException::new);
-        final LocalDateTime expiredAt = userRefreshToken.getExpiredAt();
-        if (expiredAt.isBefore(now)) {
-            throw new RefreshTokenExpiredException();
-        }
-
-        return userRefreshToken;
+    public RefreshToken validateRawToken(@NonNull String token) {
+        return refreshTokenService.getByToken(token)
+                .orElseThrow(RefreshTokenNotValidException::new);
     }
 
     public void revoke(@NonNull String token) throws RefreshTokenNotValidException {

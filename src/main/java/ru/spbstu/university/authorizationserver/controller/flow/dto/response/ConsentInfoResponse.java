@@ -1,5 +1,7 @@
 package ru.spbstu.university.authorizationserver.controller.flow.dto.response;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,6 +11,7 @@ import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 
 @Getter
 @AllArgsConstructor
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class ConsentInfoResponse {
     @NonNull
     private final String subject;

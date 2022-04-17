@@ -13,6 +13,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
@@ -29,6 +30,7 @@ import ru.spbstu.university.authorizationserver.model.enums.TokenType;
 import ru.spbstu.university.authorizationserver.service.auth.security.JwksService;
 import ru.spbstu.university.authorizationserver.service.auth.security.token.access.exception.AccessTokenNotValidException;
 import ru.spbstu.university.authorizationserver.service.exception.ClientNotFoundException;
+import ru.spbstu.university.authorizationserver.service.exception.ScopeNotValidException;
 import ru.spbstu.university.authorizationserver.service.generator.Generator;
 
 @Slf4j
@@ -85,7 +87,8 @@ public class AccessTokenProvider {
 
     @SneakyThrows
     @NonNull
-    public ClientCredentialsToken createJwt(@NonNull String clientId, @NonNull String sessionId, @NonNull List<String> scopes) {
+    public ClientCredentialsToken createJwt(@NonNull String clientId, @NonNull String sessionId,
+                                            @NonNull List<String> scopes) {
         final KeySet keySet = jwksService.getByClientId(clientId, TokenEnum.ACCESS_TOKEN)
                 .orElseThrow(ClientNotFoundException::new);
         final Map<String, Object> map = new HashMap<>();
@@ -111,15 +114,14 @@ public class AccessTokenProvider {
 
     @SneakyThrows
     @NonNull
-    public TokenInfo createJwt(@NonNull String accessToken, @NonNull String clientId) {
-        final Claims claims = validate(accessToken, clientId);
-        final KeySet keySet = jwksService
-                .getByClientId(claims.get("client_id", String.class), TokenEnum.ACCESS_TOKEN)
+    public TokenInfo createJwt(@NonNull Claims claims, @NonNull String clientId) {
+        final KeySet keySet = jwksService.getByClientId(clientId, TokenEnum.ACCESS_TOKEN)
                 .orElseThrow(ClientNotFoundException::new);
         final Date now = new Date();
         final Date expiredTime = new Date(now.getTime() + VALIDITY_TIME_IN_MS);
         final String token = Jwts.builder()
                 .setClaims(claims)
+                .setExpiration(expiredTime)
                 .setHeaderParam("typ", "JWT")
                 .signWith(SignatureAlgorithm.RS256, keySet.getPrivateKey())
                 .compact();
@@ -133,6 +135,22 @@ public class AccessTokenProvider {
         final KeySet keySet = jwksService.getByClientId(clientId, TokenEnum.ACCESS_TOKEN)
                 .orElseThrow(ClientNotFoundException::new);
         Jws<Claims> claims = getClaims(token, keySet);
+
+        return claims.getBody();
+    }
+
+    @NonNull
+    public Claims validate(@NonNull String token, @NonNull String clientId, @Nullable List<String> scopes) {
+        final KeySet keySet = jwksService.getByClientId(clientId, TokenEnum.ACCESS_TOKEN)
+                .orElseThrow(ClientNotFoundException::new);
+        Jws<Claims> claims = getClaims(token, keySet);
+
+        if (Objects.nonNull(scopes)) {
+            final List<String> tokenScopes = claims.getBody().get("scopes", List.class);
+            if (!tokenScopes.containsAll(scopes)) {
+                throw new ScopeNotValidException();
+            }
+        }
 
         return claims.getBody();
     }

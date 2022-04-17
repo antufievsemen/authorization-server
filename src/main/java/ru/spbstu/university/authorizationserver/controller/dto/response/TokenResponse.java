@@ -1,5 +1,7 @@
 package ru.spbstu.university.authorizationserver.controller.dto.response;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import java.util.List;
 import lombok.Builder;
 import lombok.Getter;
@@ -14,6 +16,7 @@ import ru.spbstu.university.authorizationserver.model.enums.TokenType;
 @Getter
 @RequiredArgsConstructor
 @NoArgsConstructor
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class TokenResponse {
     @NonNull
     private String accessToken;

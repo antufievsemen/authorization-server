@@ -11,6 +11,10 @@ import ru.spbstu.university.authorizationserver.model.User;
 public class LogoutInfo {
     @NonNull
     private final User user;
-    @Nullable
+    @NonNull
     private final String postRedirectUri;
+    @Nullable
+    private final String state;
+    @NonNull
+    private final String idTokenHint;
 }

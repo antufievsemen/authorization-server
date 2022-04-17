@@ -2,7 +2,9 @@ spring:
   jackson:
     mapper:
       ACCEPT_CASE_INSENSITIVE_ENUMS: true
-  datasource:
+
+    propertyNamingStrategy: SNAKE_CASE
+    datasource:
     username: demouser
     password: demopassword
     url: "jdbc:postgresql://localhost:15432/postgres"

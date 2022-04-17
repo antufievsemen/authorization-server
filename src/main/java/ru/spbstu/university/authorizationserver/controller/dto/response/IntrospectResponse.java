@@ -1,5 +1,7 @@
 package ru.spbstu.university.authorizationserver.controller.dto.response;
 
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import io.jsonwebtoken.Claims;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +14,7 @@ import org.springframework.util.MultiValueMap;
 
 @Getter
 @AllArgsConstructor
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class IntrospectResponse {
     boolean active;
     @NonNull

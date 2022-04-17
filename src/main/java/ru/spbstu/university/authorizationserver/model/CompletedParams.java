@@ -16,9 +16,9 @@ import org.springframework.lang.Nullable;
 public class CompletedParams {
     @NonNull
     private ConsentParams consentParams;
-    @Nullable
+    @NonNull
     private List<String> aud;
-    @Nullable
+    @NonNull
     private List<String> scopes;
     @Nullable
     private Map<String, String> userInfo;

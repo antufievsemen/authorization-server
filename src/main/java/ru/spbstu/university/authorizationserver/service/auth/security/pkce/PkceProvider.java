@@ -7,7 +7,7 @@ import java.util.Base64;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
-import ru.spbstu.university.authorizationserver.model.AuthParams;
+import ru.spbstu.university.authorizationserver.model.PkceParams;
 import ru.spbstu.university.authorizationserver.service.auth.security.pkce.exception.CodeChallengeMethodIncorrectException;
 import ru.spbstu.university.authorizationserver.service.auth.security.pkce.exception.PkceAuthIncorrectException;
 
@@ -15,9 +15,9 @@ import ru.spbstu.university.authorizationserver.service.auth.security.pkce.excep
 @AllArgsConstructor
 public class PkceProvider {
 
-    public void validate(@NonNull String code, @NonNull AuthParams.PkceParams pkceParams) {
+    public void validate(@NonNull String code, @NonNull PkceParams pkceParams) {
         try {
-            MessageDigest messageDigest = MessageDigest.getInstance(pkceParams.getMethod());
+            MessageDigest messageDigest = MessageDigest.getInstance(pkceParams.getCodeChallengeMethod());
             String codeChallenge = Base64.getEncoder().encodeToString(messageDigest.digest(
                     code.getBytes(StandardCharsets.UTF_8)));
             if (pkceParams.getCodeChallenge().equals(codeChallenge)) {

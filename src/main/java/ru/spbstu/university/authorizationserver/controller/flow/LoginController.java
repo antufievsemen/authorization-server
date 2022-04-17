@@ -14,7 +14,6 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.spbstu.university.authorizationserver.config.SelfIssuerSettings;
 import ru.spbstu.university.authorizationserver.controller.annotation.ApiV1;
 import ru.spbstu.university.authorizationserver.controller.flow.dto.request.LoginRequest;
-import ru.spbstu.university.authorizationserver.controller.flow.dto.response.LoginRedirectResponse;
 import ru.spbstu.university.authorizationserver.controller.flow.dto.response.LoginInfoResponse;
 import ru.spbstu.university.authorizationserver.model.enums.ResponseTypeEnum;
 import ru.spbstu.university.authorizationserver.service.auth.FlowSessionManager;
@@ -38,8 +37,8 @@ public class LoginController {
 
     @ResponseStatus(HttpStatus.OK)
     @PutMapping("/oauth2/auth/requests/login/accept")
-    public LoginRedirectResponse accept(@RequestParam(name = "login_verifier") String loginVerifier,
-                                        @NonNull @RequestBody LoginRequest request) {
+    public String accept(@RequestParam(name = "login_verifier") String loginVerifier,
+                         @NonNull @RequestBody LoginRequest request) {
         return getLoginAcceptResponse(flowSessionManager.acceptLogin(loginVerifier, request.getSubject()));
     }
 
@@ -51,10 +50,10 @@ public class LoginController {
     }
 
     @NonNull
-    private LoginRedirectResponse getLoginAcceptResponse(@NonNull LoginAccept loginAccept) {
-        return new LoginRedirectResponse(new DefaultUriBuilderFactory(settings.getIssuer())
+    private String getLoginAcceptResponse(@NonNull LoginAccept loginAccept) {
+        return new DefaultUriBuilderFactory(settings.getIssuer())
                 .uriString("/v1/oauth2/auth")
                 .queryParams(loginAccept.getAttributes())
-                .build().toASCIIString());
+                .build().toASCIIString();
     }
 }

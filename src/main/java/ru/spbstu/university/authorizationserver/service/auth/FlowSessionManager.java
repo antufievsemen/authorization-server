@@ -7,14 +7,14 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
 import ru.spbstu.university.authorizationserver.model.AuthParams;
-import ru.spbstu.university.authorizationserver.model.User;
-import ru.spbstu.university.authorizationserver.model.enums.ScopeEnum;
+import ru.spbstu.university.authorizationserver.model.CompletedParams;
 import ru.spbstu.university.authorizationserver.model.ConsentParams;
-import ru.spbstu.university.authorizationserver.service.ClientService;
-import ru.spbstu.university.authorizationserver.service.ConsentParamsService;
+import ru.spbstu.university.authorizationserver.model.enums.ScopeEnum;
 import ru.spbstu.university.authorizationserver.service.AuthParamsService;
+import ru.spbstu.university.authorizationserver.service.ClientService;
+import ru.spbstu.university.authorizationserver.service.CompletedParamsService;
+import ru.spbstu.university.authorizationserver.service.ConsentParamsService;
 import ru.spbstu.university.authorizationserver.service.ScopeService;
 import ru.spbstu.university.authorizationserver.service.UserService;
 import ru.spbstu.university.authorizationserver.service.auth.dto.loginconsent.ConsentAccept;
@@ -23,11 +23,11 @@ import ru.spbstu.university.authorizationserver.service.auth.dto.loginconsent.Lo
 import ru.spbstu.university.authorizationserver.service.auth.dto.loginconsent.LoginInfo;
 import ru.spbstu.university.authorizationserver.service.auth.dto.logout.LogoutAccept;
 import ru.spbstu.university.authorizationserver.service.auth.dto.logout.LogoutInfo;
-import ru.spbstu.university.authorizationserver.service.auth.dto.redirect.enums.RedirectResponseEnum;
 import ru.spbstu.university.authorizationserver.service.auth.exception.LoginAcceptException;
 import ru.spbstu.university.authorizationserver.service.auth.exception.SessionExpiredException;
 import ru.spbstu.university.authorizationserver.service.auth.exception.UserinfoMissMatchedException;
 import ru.spbstu.university.authorizationserver.service.auth.security.codeverifier.CodeVerifierProvider;
+import ru.spbstu.university.authorizationserver.service.exception.CodeVerifierExpiredException;
 
 @Service
 @AllArgsConstructor
@@ -46,6 +46,8 @@ public class FlowSessionManager {
     private final ConsentParamsService consentParamsService;
     @NonNull
     private final LogoutInfoService logoutInfoService;
+    @NonNull
+    private final CompletedParamsService completedParamsService;
 
     @NonNull
     public LoginInfo getLoginInfo(@NonNull String loginVerifier) {
@@ -64,14 +66,14 @@ public class FlowSessionManager {
                 .orElseThrow(LoginAcceptException::new);
         authParamsService.delete(loginVerifier);
 
-
-        final User user = userService.create(subject,
+        userService.create(subject,
                 clientService.getByClientId(authParams.getClientInfo().getClientId()),
                 scopeService.getAllByName(authParams.getScopes()), authParams.getSessionId());
 
-        authParams.setSubject(user.getId());
         authParamsService.create(loginVerifier, authParams);
-        return new LoginAccept(loginVerifier);
+        return new LoginAccept(loginVerifier, authParams.getClientInfo().getClientId(), authParams.getState(),
+                authParams.getResponseTypes(), authParams.getScopes(), authParams.getRedirectUri(),
+                authParams.getNonce());
     }
 
     @NonNull
@@ -82,7 +84,7 @@ public class FlowSessionManager {
 
         final AuthParams authParams = consentParams.getAuthParams();
 
-        return new ConsentInfo(Objects.requireNonNull(authParams.getSubject()), authParams.getClientInfo(),
+        return new ConsentInfo(Objects.requireNonNull(consentParams.getUser().getId()), authParams.getClientInfo(),
                 authParams.getGrantTypes(), authParams.getResponseTypes(), authParams.getScopes(),
                 authParams.getRedirectUri());
     }
@@ -102,25 +104,28 @@ public class FlowSessionManager {
                 .orElseThrow(SessionExpiredException::new);
         consentParamsService.delete(consentVerifier);
 
-        consentParams.setAud(aud);
-        consentParams.setScopes(permittedScopes);
-        consentParams.setUserinfo(userInfo);
-        consentParamsService.create(consentVerifier, consentParams);
+        final CompletedParams completedParams = new CompletedParams(consentParams, aud, permittedScopes, userInfo);
+        completedParamsService.create(consentVerifier, completedParams);
 
-        return new ConsentAccept(consentVerifier);
+        final AuthParams authParams = consentParams.getAuthParams();
+
+        return new ConsentAccept(codeVerifierProvider.generate(), authParams.getClientInfo().getClientId(),
+                authParams.getState(), authParams.getResponseTypes(), authParams.getScopes(),
+                authParams.getRedirectUri(), authParams.getNonce());
     }
 
     @NonNull
-    public LogoutInfo getLogoutInfo(@NonNull String sessionId, @NonNull String codeVerifier) {
+    public LogoutInfo getLogoutInfo(@NonNull String codeVerifier) {
         codeVerifierProvider.validate(codeVerifier);
-        return logoutInfoService.get(sessionId).orElseThrow(SessionExpiredException::new);
+        return logoutInfoService.get(codeVerifier).orElseThrow(CodeVerifierExpiredException::new);
     }
 
     @NonNull
-    public LogoutAccept accept(@NonNull String codeVerifier, @NonNull String sessionId) {
-        final LinkedMultiValueMap<String, String> attributes = new LinkedMultiValueMap<>();
+    public LogoutAccept accept(@NonNull String codeVerifier) {
+        codeVerifierProvider.validate(codeVerifier);
+        final LogoutInfo logoutInfo = logoutInfoService.get(codeVerifier).orElseThrow(CodeVerifierExpiredException::new);
 
-        attributes.add(RedirectResponseEnum.LOGOUT_VERIFIER.getName(), codeVerifier);
-        return new LogoutAccept(attributes);
+        return new LogoutAccept(logoutInfo.getPostRedirectUri(), logoutInfo.getState(), logoutInfo.getIdTokenHint(),
+                codeVerifier);
     }
 }

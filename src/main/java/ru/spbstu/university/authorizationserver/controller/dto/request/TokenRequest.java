@@ -1,7 +1,7 @@
 package ru.spbstu.university.authorizationserver.controller.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.List;
-import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NonNull;
@@ -11,16 +11,15 @@ import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 @Getter
 @AllArgsConstructor
 public class TokenRequest {
-    @Nullable
-    private final String code;
     @NonNull
+    @JsonProperty("client_id")
     private final String clientId;
-    @Nullable
-    private final String clientSecret;
     @NonNull
     private final List<GrantTypeEnum> grantTypes;
-    @NonNull
-    private final Optional<String> codeVerifier;
+    @Nullable
+    private final String clientSecret;
+    @Nullable
+    private final String code;
     @Nullable
     private final String accessToken;
     @Nullable
@@ -29,4 +28,6 @@ public class TokenRequest {
     private final String redirectUri;
     @Nullable
     private final List<String> scopes;
+    @Nullable
+    private final String codeVerifier;
 }

@@ -48,8 +48,11 @@ public class AuthorizationController {
     @GetMapping("/oauth2/sessions/logout")
     public RedirectView logout(@RequestParam(name = "post_logout_redirect_uri", required = false) Optional<String> redirectUri,
                                @RequestParam(name = "logout_verifier", required = false) Optional<String> logoutVerifier,
+                               @RequestParam(name = "id_token_hint") String idTokenHint,
+                               @RequestParam(name = "state", required = false) Optional<String> state,
                                @NonNull RedirectAttributes redirectAttributes, @NonNull HttpSession httpSession) {
-        final RedirectResponse redirectResponse = authProvider.logout(httpSession.getId(), redirectUri, logoutVerifier);
+        final RedirectResponse redirectResponse = authProvider.logout(httpSession.getId(), redirectUri, logoutVerifier,
+                idTokenHint, state);
 
         redirectAttributes.addAllAttributes(redirectResponse.getRedirectAttributes());
         return new RedirectView(redirectResponse.getRedirectUrl());

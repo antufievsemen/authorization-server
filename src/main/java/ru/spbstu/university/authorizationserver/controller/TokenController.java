@@ -16,6 +16,7 @@ import ru.spbstu.university.authorizationserver.controller.dto.response.Introspe
 import ru.spbstu.university.authorizationserver.service.auth.IntrospectManager;
 import ru.spbstu.university.authorizationserver.service.auth.RevokeManager;
 import ru.spbstu.university.authorizationserver.service.auth.TokenManager;
+import ru.spbstu.university.authorizationserver.service.auth.dto.token.IntrospectBody;
 import ru.spbstu.university.authorizationserver.service.auth.dto.token.TokenResponseBody;
 
 @ApiV1
@@ -33,19 +34,24 @@ public class TokenController {
     @PostMapping("/oauth2/token")
     public TokenResponseBody token(@RequestBody TokenRequest request, @NonNull HttpSession httpSession) {
         return tokenManager.generate(request.getClientId(), request.getClientSecret(), request.getCode(),
-                request.getRedirectUri(), request.getGrantTypes(), request.getAccessToken(), request.getRefreshToken(), request.getCodeVerifier(),
-                httpSession.getId(), request.getScopes());
+                request.getRedirectUri(), request.getGrantTypes(), request.getAccessToken(), request.getRefreshToken(),
+                httpSession.getId(), request.getScopes(), request.getCodeVerifier());
     }
 
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("/oauth2/revoke")
-    public void revoke(@RequestBody RevokeRequest request) {
-        revokeManager.revoke(request.getToken());
+    public void revoke(@RequestBody RevokeRequest request, @NonNull HttpSession httpSession) {
+        revokeManager.revoke(request.getToken(), httpSession.getId());
     }
 
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("/oauth2/introspect")
-    public IntrospectResponse introspect(@RequestBody IntrospectRequest request) {
-        return introspectManager.introspect(request.getToken(), request.getScopes());
+    public IntrospectResponse introspect(@RequestBody IntrospectRequest request, @NonNull HttpSession httpSession) {
+        return toResponse(introspectManager.introspect(request.getToken(), request.getScopes(), httpSession.getId()));
+    }
+
+    @NonNull
+    private IntrospectResponse toResponse(@NonNull IntrospectBody body) {
+        return new IntrospectResponse(true, body.getClaims());
     }
 }

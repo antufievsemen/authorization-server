@@ -9,9 +9,11 @@ import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import lombok.NonNull;
 import lombok.SneakyThrows;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import ru.spbstu.university.authorizationserver.config.SelfIssuerSettings;
 import ru.spbstu.university.authorizationserver.model.KeySet;
@@ -20,7 +22,6 @@ import ru.spbstu.university.authorizationserver.model.enums.TokenEnum;
 import ru.spbstu.university.authorizationserver.service.UserService;
 import ru.spbstu.university.authorizationserver.service.auth.security.JwksService;
 import ru.spbstu.university.authorizationserver.service.auth.security.token.access.exception.AccessTokenNotValidException;
-import ru.spbstu.university.authorizationserver.service.auth.security.token.openid.exception.OpenidTokenIsNotActiveException;
 import ru.spbstu.university.authorizationserver.service.auth.security.token.openid.exception.OpenidTokenNotValidException;
 import ru.spbstu.university.authorizationserver.service.auth.security.token.openid.exception.OpenidTokenWithNotExistUserException;
 import ru.spbstu.university.authorizationserver.service.exception.ClientNotFoundException;
@@ -50,17 +51,17 @@ public class OpenidTokenProvider {
     }
 
     @NonNull
-    public String create(@NonNull String sub, @NonNull String nonce, @NonNull String sessionId,
-                         @NonNull String accessTokenHash, @NonNull LocalDateTime authAt,
-                         @NonNull Map<String, String> claims) {
+    public String create(@NonNull String sub, @Nullable String nonce, @NonNull String sessionId,
+                         @NonNull String accessTokenHash, @Nullable Map<String, String> claims) {
         final User user = userService.get(sub).orElseThrow(OpenidTokenWithNotExistUserException::new);
         final KeySet keySet = jwksService.getByClientId(user.getClient().getClientId(), TokenEnum.ACCESS_TOKEN)
                 .orElseThrow(ClientNotFoundException::new);
-        final Map<String, Object> map = new HashMap<>(claims);
+        final Map<String, Object> map = new HashMap<>();
+        Optional.ofNullable(claims).ifPresent(map::putAll);
         map.put("at_hash", accessTokenHash);
-        map.put("nonce", nonce);
+        Optional.ofNullable(nonce).ifPresent(s -> map.put("nonce", s));
         map.put("sid", sessionId);
-        map.put("auth_time", authAt.getNano());
+        map.put("auth_time", LocalDateTime.now().getNano());
         final Date now = new Date();
         final Date expiredTime = new Date(now.getTime() + VALIDITY_TIME_IN_MS);
         return Jwts.builder()
@@ -93,14 +94,10 @@ public class OpenidTokenProvider {
     }
 
     @NonNull
-    public Claims validate(@NonNull String token, @NonNull String clientId) throws OpenidTokenIsNotActiveException {
+    public Claims validate(@NonNull String token, @NonNull String clientId) {
         final KeySet keySet = jwksService.getByClientId(clientId, TokenEnum.ACCESS_TOKEN)
                 .orElseThrow(ClientNotFoundException::new);
         Jws<Claims> claims = getClaims(token, keySet);
-        final boolean isExpired = claims.getBody().getExpiration().after(new Date());
-        if (isExpired) {
-            throw new OpenidTokenIsNotActiveException();
-        }
 
         return claims.getBody();
     }

@@ -10,16 +10,18 @@ import lombok.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import ru.spbstu.university.authorizationserver.model.AuthParams;
+import ru.spbstu.university.authorizationserver.model.ClientInfo;
 import ru.spbstu.university.authorizationserver.model.User;
 import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 import ru.spbstu.university.authorizationserver.model.enums.ResponseTypeEnum;
 import ru.spbstu.university.authorizationserver.model.enums.ScopeEnum;
-import ru.spbstu.university.authorizationserver.model.ClientInfo;
 import ru.spbstu.university.authorizationserver.service.ClientService;
 import ru.spbstu.university.authorizationserver.service.UserService;
 import ru.spbstu.university.authorizationserver.service.auth.dto.redirect.RedirectResponse;
 import ru.spbstu.university.authorizationserver.service.auth.exception.RequestParamsNotValidException;
+import ru.spbstu.university.authorizationserver.service.auth.exception.SessionExpiredException;
 import ru.spbstu.university.authorizationserver.service.auth.security.codeverifier.CodeVerifierProvider;
+import ru.spbstu.university.authorizationserver.service.auth.security.token.openid.OpenidTokenProvider;
 import ru.spbstu.university.authorizationserver.service.exception.UserNotFoundException;
 
 @Service
@@ -35,6 +37,8 @@ public class AuthProvider {
     private final LogoutManagerService logoutManagerService;
     @NonNull
     private final CodeVerifierProvider codeVerifierProvider;
+    @NonNull
+    private final OpenidTokenProvider openidTokenProvider;
 
     @NonNull
     public RedirectResponse authorize(@NonNull String clientId, @NonNull List<String> responseTypes,
@@ -84,12 +88,6 @@ public class AuthProvider {
     }
 
     @NonNull
-    public RedirectResponse logout(@NonNull String sessionId, @NonNull Optional<String> redirectUri,
-                                   @NonNull Optional<String> logoutVerifier) {
-        return logoutManagerService.logout(sessionId, redirectUri, logoutVerifier);
-    }
-
-    @NonNull
     private List<GrantTypeEnum> getGrantType(@NonNull List<ResponseTypeEnum> responseTypes,
                                              @NonNull List<String> scopes) {
         if (responseTypes.contains(ResponseTypeEnum.TOKEN)
@@ -120,5 +118,19 @@ public class AuthProvider {
     @NonNull
     private List<GrantTypeEnum> getImplicitGrantType() {
         return new ArrayList<>(List.of(GrantTypeEnum.IMPLICIT));
+    }
+
+    @NonNull
+    public RedirectResponse logout(@NonNull String sessionId, @NonNull Optional<String> redirectUri,
+                                   @NonNull Optional<String> logoutVerifier, @NonNull String idTokenHint,
+                                   @NonNull Optional<String> state) {
+        if (logoutVerifier.isPresent()) {
+            codeVerifierProvider.validate(logoutVerifier.get());
+            return logoutManagerService.logout(redirectUri, logoutVerifier.get(), state);
+        }
+
+        final Optional<User> user = userService.getBySessionId(sessionId);
+        return user.map(value -> logoutManagerService.logout(value, idTokenHint, state, redirectUri))
+                .orElseGet(() -> logoutManagerService.logout(redirectUri, state));
     }
 }

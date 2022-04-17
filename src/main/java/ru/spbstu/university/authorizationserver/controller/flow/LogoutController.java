@@ -1,7 +1,6 @@
 package ru.spbstu.university.authorizationserver.controller.flow;
 
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.http.HttpStatus;
@@ -11,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.util.DefaultUriBuilderFactory;
+import ru.spbstu.university.authorizationserver.config.RedirectSettings;
 import ru.spbstu.university.authorizationserver.controller.annotation.ApiV1;
 import ru.spbstu.university.authorizationserver.controller.flow.dto.response.LogoutInfoResponse;
 import ru.spbstu.university.authorizationserver.model.Scope;
@@ -24,17 +24,19 @@ import ru.spbstu.university.authorizationserver.service.auth.dto.logout.LogoutIn
 public class LogoutController {
     @NonNull
     private final FlowSessionManager flowSessionManager;
+    @NonNull
+    private final RedirectSettings settings;
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/oauth2/auth/requests/logout")
-    public LogoutInfoResponse getInfo(@RequestParam(name = "logout_verifier") String codeVerifier, @NonNull HttpSession httpSession) {
-        return getLogoutInfoResponse(flowSessionManager.getLogoutInfo(httpSession.getId(), codeVerifier));
+    public LogoutInfoResponse getInfo(@RequestParam(name = "logout_verifier") String codeVerifier) {
+        return getLogoutInfoResponse(flowSessionManager.getLogoutInfo(codeVerifier));
     }
 
     @ResponseStatus(HttpStatus.OK)
     @PutMapping("/oauth2/auth/requests/logout/accept")
-    public String accept(@RequestParam(name = "logout_challenge") String logoutChallenge, @NonNull HttpSession httpSession) {
-        return toAcceptResponse(flowSessionManager.accept(logoutChallenge, httpSession.getId()));
+    public String accept(@RequestParam(name = "logout_challenge") String logoutChallenge) {
+        return toAcceptResponse(flowSessionManager.accept(logoutChallenge));
     }
 
     @NonNull
@@ -46,7 +48,9 @@ public class LogoutController {
 
     @NonNull
     private String toAcceptResponse(@NonNull LogoutAccept logoutAccept) {
-        return new DefaultUriBuilderFactory("http://localhost:8080/v1/auth-server/auth").builder()
-                .queryParams(logoutAccept.getAttributes()).build().toASCIIString();
+        return new DefaultUriBuilderFactory(settings.getLogout())
+                .uriString("/v1/oauth2/auth")
+                .queryParams(logoutAccept.getAttributes())
+                .build().toASCIIString();
     }
 }

@@ -106,6 +106,8 @@ public class AuthFlowManager {
 
         final String code = authCodeProvider.generate();
         completedParamsService.create(code, completedParams);
+        pkceParamsService.get(completedParams.getConsentParams().getAuthParams().getState())
+                .ifPresent(pkceParams -> pkceParamsService.create(code, pkceParams));
         return new RedirectCodeResponse(code, authParams.getRedirectUri(),
                 authParams.getState());
     }

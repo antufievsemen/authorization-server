@@ -1,4 +1,4 @@
-package ru.spbstu.university.authorizationserver.model;
+package ru.spbstu.university.authorizationserver.model.cache;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

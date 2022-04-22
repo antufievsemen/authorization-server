@@ -1,4 +1,4 @@
-package ru.spbstu.university.authorizationserver.model;
+package ru.spbstu.university.authorizationserver.model.cache;
 
 import java.util.List;
 import java.util.Map;
@@ -21,5 +21,5 @@ public class CompletedParams {
     @NonNull
     private List<String> scopes;
     @Nullable
-    private Map<String, String> userInfo;
+    private Map<String, String> openidInfo;
 }

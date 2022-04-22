@@ -7,11 +7,12 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 import ru.spbstu.university.authorizationserver.config.RedirectSettings;
-import ru.spbstu.university.authorizationserver.model.AuthParams;
-import ru.spbstu.university.authorizationserver.model.CompletedParams;
-import ru.spbstu.university.authorizationserver.model.ConsentParams;
-import ru.spbstu.university.authorizationserver.model.PkceParams;
 import ru.spbstu.university.authorizationserver.model.User;
+import ru.spbstu.university.authorizationserver.model.cache.AuthParams;
+import ru.spbstu.university.authorizationserver.model.cache.CompletedParams;
+import ru.spbstu.university.authorizationserver.model.cache.ConsentParams;
+import ru.spbstu.university.authorizationserver.model.cache.PkceParams;
+import ru.spbstu.university.authorizationserver.model.cache.UserInfo;
 import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 import ru.spbstu.university.authorizationserver.model.enums.ResponseTypeEnum;
 import ru.spbstu.university.authorizationserver.service.AuthParamsService;
@@ -72,7 +73,7 @@ public class AuthFlowManager {
 
         final String verifier = codeVerifierProvider.generate();
         consentParamsService.create(verifier,
-                new ConsentParams(authParams, user));
+                new ConsentParams(authParams, new UserInfo(user)));
 
         return new ConsentRedirect(verifier, settings.getConsent());
     }
@@ -80,7 +81,7 @@ public class AuthFlowManager {
     @NonNull
     public RedirectResponse consentFlow(@NonNull User user, @NonNull AuthParams authParams) {
         final String verifier = codeVerifierProvider.generate();
-        consentParamsService.create(verifier, new ConsentParams(authParams, user));
+        consentParamsService.create(verifier, new ConsentParams(authParams, new UserInfo(user)));
 
         return new ConsentRedirect(verifier, settings.getConsent());
     }
@@ -96,7 +97,7 @@ public class AuthFlowManager {
 
         if (grantTypes.contains(GrantTypeEnum.IMPLICIT) && responseTypes.contains(ResponseTypeEnum.TOKEN)) {
             final AccessTokenProvider.TokenInfo jwt = accessTokenProvider
-                    .createJwt(completedParams.getConsentParams().getUser().getId(),
+                    .createJwt(completedParams.getConsentParams().getUserInfo().getId(),
                             authParams.getClientInfo().getClientId(), authParams.getSessionId(),
                             completedParams.getAud(), Objects.requireNonNull(completedParams.getScopes()));
 

@@ -8,7 +8,12 @@ import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.SignatureException;
 import io.jsonwebtoken.UnsupportedJwtException;
+import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
+import java.security.PrivateKey;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -60,8 +65,6 @@ public class AccessTokenProvider {
     @NonNull
     public TokenInfo createJwt(@NonNull String sub, @NonNull String clientId, @NonNull String sessionId,
                                @Nullable List<String> aud, @NonNull List<String> scopes) {
-        final KeySet keySet = jwksService.getByClientId(clientId, TokenEnum.ACCESS_TOKEN)
-                .orElseThrow(ClientNotFoundException::new);
         final Map<String, Object> map = new HashMap<>();
         map.put("clientId", clientId);
         map.put("token_use", "access_token");
@@ -79,7 +82,7 @@ public class AccessTokenProvider {
                 .setExpiration(expiredTime)
                 .setNotBefore(now)
                 .setHeaderParam("typ", "JWT")
-                .signWith(SignatureAlgorithm.RS256, keySet.getPrivateKey())
+                .signWith(SignatureAlgorithm.RS256, getPrivateKey(clientId))
                 .compact();
 
         return new TokenInfo(sub, token, expiredTime, scopes, TokenType.JWT);
@@ -89,8 +92,6 @@ public class AccessTokenProvider {
     @NonNull
     public ClientCredentialsToken createJwt(@NonNull String clientId, @NonNull String sessionId,
                                             @NonNull List<String> scopes) {
-        final KeySet keySet = jwksService.getByClientId(clientId, TokenEnum.ACCESS_TOKEN)
-                .orElseThrow(ClientNotFoundException::new);
         final Map<String, Object> map = new HashMap<>();
         map.put("clientId", clientId);
         map.put("token_use", "access_token");
@@ -106,7 +107,7 @@ public class AccessTokenProvider {
                 .setExpiration(expiredTime)
                 .setNotBefore(now)
                 .setHeaderParam("typ", "JWT")
-                .signWith(SignatureAlgorithm.RS256, keySet.getPrivateKey())
+                .signWith(SignatureAlgorithm.RS256, getPrivateKey(clientId))
                 .compact();
 
         return new ClientCredentialsToken(token, expiredTime, scopes, TokenType.JWT);
@@ -115,15 +116,13 @@ public class AccessTokenProvider {
     @SneakyThrows
     @NonNull
     public TokenInfo createJwt(@NonNull Claims claims, @NonNull String clientId) {
-        final KeySet keySet = jwksService.getByClientId(clientId, TokenEnum.ACCESS_TOKEN)
-                .orElseThrow(ClientNotFoundException::new);
         final Date now = new Date();
         final Date expiredTime = new Date(now.getTime() + VALIDITY_TIME_IN_MS);
         final String token = Jwts.builder()
                 .setClaims(claims)
                 .setExpiration(expiredTime)
                 .setHeaderParam("typ", "JWT")
-                .signWith(SignatureAlgorithm.RS256, keySet.getPrivateKey())
+                .signWith(SignatureAlgorithm.RS256, getPrivateKey(clientId))
                 .compact();
 
         return new TokenInfo(claims.getSubject(), token, expiredTime, claims.get("scopes", List.class),
@@ -172,6 +171,15 @@ public class AccessTokenProvider {
                 | SignatureException | IllegalArgumentException e) {
             throw new AccessTokenNotValidException();
         }
+    }
+
+    @SneakyThrows
+    @NonNull
+    private PrivateKey getPrivateKey(@NonNull String clientId) {
+        final KeySet keySet = jwksService.getOrCreateKeyPair(clientId, TokenEnum.ACCESS_TOKEN);
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keySet.getPrivateKey());
+        KeyFactory kf = KeyFactory.getInstance("RSA");
+        return kf.generatePrivate(keySpec);
     }
 
     @Getter

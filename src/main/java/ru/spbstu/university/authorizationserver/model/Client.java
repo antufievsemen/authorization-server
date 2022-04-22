@@ -21,7 +21,7 @@ import org.hibernate.annotations.FetchMode;
 import org.hibernate.annotations.UpdateTimestamp;
 
 
-@Entity(name = "client")
+@Entity(name = "clients")
 @Getter
 @Setter
 @NoArgsConstructor

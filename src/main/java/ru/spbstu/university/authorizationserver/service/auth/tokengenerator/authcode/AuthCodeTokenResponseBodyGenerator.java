@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import ru.spbstu.university.authorizationserver.model.Client;
-import ru.spbstu.university.authorizationserver.model.CompletedParams;
+import ru.spbstu.university.authorizationserver.model.cache.CompletedParams;
 import ru.spbstu.university.authorizationserver.model.GrantType;
 import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 import ru.spbstu.university.authorizationserver.model.enums.ScopeEnum;
@@ -18,6 +18,7 @@ import ru.spbstu.university.authorizationserver.service.CompletedParamsService;
 import ru.spbstu.university.authorizationserver.service.PkceParamsService;
 import ru.spbstu.university.authorizationserver.service.auth.dto.token.TokenResponseBody;
 import ru.spbstu.university.authorizationserver.service.auth.exception.GrantTypeNotValidException;
+import ru.spbstu.university.authorizationserver.service.auth.security.authcode.AuthCodeProvider;
 import ru.spbstu.university.authorizationserver.service.auth.security.codeverifier.CodeVerifierProvider;
 import ru.spbstu.university.authorizationserver.service.auth.security.pkce.PkceProvider;
 import ru.spbstu.university.authorizationserver.service.auth.security.pkce.exception.PkceAuthIncorrectException;
@@ -44,7 +45,7 @@ public class AuthCodeTokenResponseBodyGenerator {
     @NonNull
     private final PkceParamsService pkceParamsService;
     @NonNull
-    private final CodeVerifierProvider codeVerifierProvider;
+    private final AuthCodeProvider authCodeProvider;
 
     @NonNull
     public TokenResponseBody generate(@NonNull Client client, @Nullable String code, @Nullable String redirectUri,
@@ -57,7 +58,7 @@ public class AuthCodeTokenResponseBodyGenerator {
 
         if (grantTypes.contains(GrantTypeEnum.REFRESH_TOKEN)
                 && Objects.requireNonNull(completedParams.getScopes()).contains(ScopeEnum.OFFLINE_ACCESS.getName())) {
-            addRefreshToken(map, completedParams.getConsentParams().getUser().getId());
+            addRefreshToken(map, completedParams.getConsentParams().getUserInfo().getId());
         }
 
         return new TokenResponseBody(map);
@@ -66,9 +67,9 @@ public class AuthCodeTokenResponseBodyGenerator {
     private void addOpenidToken(@NonNull MultiValueMap<String, String> map, @NonNull String sessionId,
                                 @NonNull CompletedParams completedParams, @NonNull String token) {
         final String openidToken =
-                openidTokenProvider.create(completedParams.getConsentParams().getUser().getId(),
+                openidTokenProvider.create(completedParams.getConsentParams().getUserInfo().getId(),
                         completedParams.getConsentParams().getAuthParams().getNonce(),
-                        sessionId, accessTokenProvider.getHash(token), completedParams.getUserInfo());
+                        sessionId, accessTokenProvider.getHash(token), completedParams.getOpenidInfo());
 
         map.add("id_token", openidToken);
     }
@@ -82,7 +83,7 @@ public class AuthCodeTokenResponseBodyGenerator {
     private void addAccessToken(@NonNull MultiValueMap<String, String> map, @NonNull String sessionId,
                                 @NonNull CompletedParams completedParams, @NonNull Client client) {
         final AccessTokenProvider.TokenInfo jwt =
-                accessTokenProvider.createJwt(completedParams.getConsentParams().getUser().getId(),
+                accessTokenProvider.createJwt(completedParams.getConsentParams().getUserInfo().getId(),
                         client.getClientId(), sessionId, completedParams.getAud(), completedParams.getScopes());
 
         map.add("access_token", jwt.getToken());
@@ -90,7 +91,7 @@ public class AuthCodeTokenResponseBodyGenerator {
         map.put("scopes", jwt.getScopes());
 
         if (completedParams.getScopes().contains(ScopeEnum.OPENID.getName())
-                && Objects.nonNull(completedParams.getUserInfo())) {
+                && Objects.nonNull(completedParams.getOpenidInfo())) {
             addOpenidToken(map, sessionId, completedParams, jwt.getToken());
         }
     }
@@ -102,7 +103,7 @@ public class AuthCodeTokenResponseBodyGenerator {
         if (Objects.isNull(code)) {
             throw new AuthCodeMissMatchedException();
         }
-        codeVerifierProvider.validate(code);
+        authCodeProvider.validate(code);
 
         final List<GrantTypeEnum> collectedGrantTypes = client.getGrantTypes().stream()
                 .map(GrantType::getType)
@@ -125,6 +126,7 @@ public class AuthCodeTokenResponseBodyGenerator {
             throw new CallbackNotValidException();
         }
 
+        authCodeProvider.endAuthorization(code);
         return completedParams;
     }
 }

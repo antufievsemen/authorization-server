@@ -5,7 +5,7 @@ import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
-import ru.spbstu.university.authorizationserver.model.ConsentParams;
+import ru.spbstu.university.authorizationserver.model.cache.ConsentParams;
 import ru.spbstu.university.authorizationserver.repository.ConsentRequestParamsRepository;
 
 @Service

@@ -1,6 +1,9 @@
 package ru.spbstu.university.authorizationserver.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.Date;
 import java.util.List;
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -16,7 +19,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
-@Entity(name = "user")
+@Entity(name = "users")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -35,13 +38,19 @@ public class User {
     private List<Scope> scopes;
     @NonNull
     private String sessionId;
+    @NonNull
+    private String state;
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    @JsonFormat
+            (shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
+    private Date createdAt;
 
-    public User(@NonNull String id, @NonNull Client client, @NonNull List<Scope> scopes, @NonNull String sessionId) {
+    public User(@NonNull String id, @NonNull Client client, @NonNull List<Scope> scopes, @NonNull String sessionId,
+                @NonNull String state) {
         this.id = id;
         this.client = client;
         this.scopes = scopes;
         this.sessionId = sessionId;
+        this.state = state;
     }
 }

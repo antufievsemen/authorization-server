@@ -10,7 +10,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
-@Entity
+@Entity(name = "callbacks")
 @Getter
 @Setter
 @NoArgsConstructor

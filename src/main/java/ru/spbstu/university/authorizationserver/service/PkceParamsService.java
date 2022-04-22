@@ -6,7 +6,7 @@ import lombok.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.spbstu.university.authorizationserver.repository.PkceParamsRepository;
-import ru.spbstu.university.authorizationserver.model.PkceParams;
+import ru.spbstu.university.authorizationserver.model.cache.PkceParams;
 
 @Service
 @Transactional

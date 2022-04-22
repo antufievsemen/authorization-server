@@ -11,7 +11,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 
-@Entity
+@Entity(name = "grant_types")
 @Getter
 @Setter
 @NoArgsConstructor

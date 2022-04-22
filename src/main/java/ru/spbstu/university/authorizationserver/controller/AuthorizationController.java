@@ -25,11 +25,11 @@ public class AuthorizationController {
 
     @ResponseStatus(HttpStatus.MOVED_PERMANENTLY)
     @GetMapping("/oauth2/auth")
-    public RedirectView auth(@RequestParam(name = "response_types") List<String> responseTypes,
+    public RedirectView auth(@RequestParam(name = "response_type") List<String> responseTypes,
                              @RequestParam(name = "client_id") String clientId,
                              @RequestParam(name = "nonce", required = false) String nonce,
                              @RequestParam(name = "redirect_uri") String redirectUri,
-                             @RequestParam(name = "scopes") List<String> scopes,
+                             @RequestParam(name = "scope") List<String> scopes,
                              @RequestParam(name = "state") String state,
                              @RequestParam(name = "code_challenge", required = false) Optional<String> codeChallenge,
                              @RequestParam(name = "code_challenge_method", required = false) Optional<String> codeChallengeMethod,

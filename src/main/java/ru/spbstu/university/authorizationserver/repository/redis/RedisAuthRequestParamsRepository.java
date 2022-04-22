@@ -7,7 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
-import ru.spbstu.university.authorizationserver.model.AuthParams;
+import ru.spbstu.university.authorizationserver.model.cache.AuthParams;
 import ru.spbstu.university.authorizationserver.repository.AuthRequestParamsRepository;
 
 @Repository

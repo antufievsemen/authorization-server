@@ -2,7 +2,7 @@ package ru.spbstu.university.authorizationserver.repository;
 
 import java.util.Optional;
 import lombok.NonNull;
-import ru.spbstu.university.authorizationserver.model.PkceParams;
+import ru.spbstu.university.authorizationserver.model.cache.PkceParams;
 
 public interface PkceParamsRepository {
 

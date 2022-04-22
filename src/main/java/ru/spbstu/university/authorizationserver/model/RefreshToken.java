@@ -11,7 +11,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import org.hibernate.annotations.UpdateTimestamp;
 
-@Entity
+@Entity(name = "refresh_tokens")
 @Getter
 @Setter
 @NoArgsConstructor
@@ -25,7 +25,7 @@ public class RefreshToken {
     @NonNull
     private String token;
     @UpdateTimestamp
-    private LocalDateTime createAt;
+    private LocalDateTime createdAt;
     @NonNull
     private LocalDateTime expiredAt;
 

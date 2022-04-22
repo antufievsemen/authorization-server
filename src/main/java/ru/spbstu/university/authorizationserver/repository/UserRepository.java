@@ -10,7 +10,10 @@ import ru.spbstu.university.authorizationserver.model.User;
 public interface UserRepository extends JpaRepository<User, String> {
 
     @NonNull
-    Optional<User> getBySessionId(@NonNull String sessionId);
+    Optional<User> getUserBySessionId(@NonNull String sessionId);
+
+    @NonNull
+    Optional<User> getUserByState(@NonNull String sessionId);
 
     void deleteBySessionId(@NonNull String sessionId);
 }

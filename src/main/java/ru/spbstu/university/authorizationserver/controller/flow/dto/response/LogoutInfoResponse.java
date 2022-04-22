@@ -19,7 +19,7 @@ public class LogoutInfoResponse {
     private final Client client;
     @Nullable
     private String redirectUri;
-    private final int createdAt;
+    private final long createdAt;
     @NonNull
     private final List<String> scopes;
 }

@@ -5,7 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.spbstu.university.authorizationserver.model.CompletedParams;
+import ru.spbstu.university.authorizationserver.model.cache.CompletedParams;
 import ru.spbstu.university.authorizationserver.repository.CompletedParamsRepository;
 
 @Service

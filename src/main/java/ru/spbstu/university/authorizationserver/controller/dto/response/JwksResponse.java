@@ -18,8 +18,7 @@ public class JwksResponse {
         private final String alg;
         @NonNull
         private final String e;
-        @NonNull
-        private final String n;
+        private final byte[] n;
         @NonNull
         private final String kid;
         @NonNull

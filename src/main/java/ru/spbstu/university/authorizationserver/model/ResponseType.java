@@ -11,7 +11,7 @@ import lombok.NonNull;
 import lombok.Setter;
 import ru.spbstu.university.authorizationserver.model.enums.ResponseTypeEnum;
 
-@Entity
+@Entity(name = "response_types")
 @Getter
 @Setter
 @AllArgsConstructor

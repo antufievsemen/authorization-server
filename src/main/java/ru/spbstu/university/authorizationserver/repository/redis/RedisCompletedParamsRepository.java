@@ -6,7 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Repository;
-import ru.spbstu.university.authorizationserver.model.CompletedParams;
+import ru.spbstu.university.authorizationserver.model.cache.CompletedParams;
 import ru.spbstu.university.authorizationserver.repository.CompletedParamsRepository;
 
 @Repository
@@ -19,7 +19,7 @@ public class RedisCompletedParamsRepository implements CompletedParamsRepository
     @Override
     public CompletedParams create(@NonNull String id, @NonNull CompletedParams completedParams) {
         redisTemplate.opsForValue().set(id, completedParams);
-        redisTemplate.expire(id, 3, TimeUnit.MINUTES);
+        redisTemplate.expire(id, 10, TimeUnit.MINUTES);
 
         return completedParams;
     }

@@ -7,9 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
-import ru.spbstu.university.authorizationserver.model.AuthParams;
-import ru.spbstu.university.authorizationserver.model.CompletedParams;
-import ru.spbstu.university.authorizationserver.model.ConsentParams;
+import ru.spbstu.university.authorizationserver.model.cache.AuthParams;
+import ru.spbstu.university.authorizationserver.model.cache.CompletedParams;
+import ru.spbstu.university.authorizationserver.model.cache.ConsentParams;
 import ru.spbstu.university.authorizationserver.model.enums.ScopeEnum;
 import ru.spbstu.university.authorizationserver.service.AuthParamsService;
 import ru.spbstu.university.authorizationserver.service.ClientService;
@@ -68,7 +68,7 @@ public class FlowSessionManager {
 
         userService.create(subject,
                 clientService.getByClientId(authParams.getClientInfo().getClientId()),
-                scopeService.getAllByName(authParams.getScopes()), authParams.getSessionId());
+                scopeService.getAllByName(authParams.getScopes()), authParams.getSessionId(), authParams.getState());
 
         authParamsService.create(loginVerifier, authParams);
         return new LoginAccept(loginVerifier, authParams.getClientInfo().getClientId(), authParams.getState(),
@@ -84,7 +84,7 @@ public class FlowSessionManager {
 
         final AuthParams authParams = consentParams.getAuthParams();
 
-        return new ConsentInfo(Objects.requireNonNull(consentParams.getUser().getId()), authParams.getClientInfo(),
+        return new ConsentInfo(Objects.requireNonNull(consentParams.getUserInfo().getId()), authParams.getClientInfo(),
                 authParams.getGrantTypes(), authParams.getResponseTypes(), authParams.getScopes(),
                 authParams.getRedirectUri());
     }
@@ -105,11 +105,12 @@ public class FlowSessionManager {
         consentParamsService.delete(consentVerifier);
 
         final CompletedParams completedParams = new CompletedParams(consentParams, aud, permittedScopes, userInfo);
-        completedParamsService.create(consentVerifier, completedParams);
+        final String verifier = codeVerifierProvider.generate();
+        completedParamsService.create(verifier, completedParams);
 
         final AuthParams authParams = consentParams.getAuthParams();
 
-        return new ConsentAccept(codeVerifierProvider.generate(), authParams.getClientInfo().getClientId(),
+        return new ConsentAccept(verifier, authParams.getClientInfo().getClientId(),
                 authParams.getState(), authParams.getResponseTypes(), authParams.getScopes(),
                 authParams.getRedirectUri(), authParams.getNonce());
     }

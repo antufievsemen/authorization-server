@@ -2,6 +2,7 @@ package ru.spbstu.university.authorizationserver.service.auth.security;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -34,7 +35,7 @@ public class JwksService {
 
         final KeyPair keyPair = generateKeyPair("RSA");
         return keySetRepository.save(new KeySet(idGenerator.generate(), clientId, tokenType, "RSA",
-                keyPair.getPrivate().toString(), keyPair.getPublic().toString()));
+                keyPair.getPrivate().getEncoded(), keyPair.getPublic().getEncoded()));
     }
 
     @NonNull
@@ -64,7 +65,6 @@ public class JwksService {
         private final String id;
         @NonNull
         private final String alg;
-        @NonNull
-        private final String publicKey;
+        private final byte[] publicKey;
     }
 }

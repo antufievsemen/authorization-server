@@ -9,8 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
-import ru.spbstu.university.authorizationserver.model.AuthParams;
-import ru.spbstu.university.authorizationserver.model.ClientInfo;
+import ru.spbstu.university.authorizationserver.model.cache.AuthParams;
+import ru.spbstu.university.authorizationserver.model.cache.ClientInfo;
 import ru.spbstu.university.authorizationserver.model.User;
 import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 import ru.spbstu.university.authorizationserver.model.enums.ResponseTypeEnum;
@@ -19,7 +19,6 @@ import ru.spbstu.university.authorizationserver.service.ClientService;
 import ru.spbstu.university.authorizationserver.service.UserService;
 import ru.spbstu.university.authorizationserver.service.auth.dto.redirect.RedirectResponse;
 import ru.spbstu.university.authorizationserver.service.auth.exception.RequestParamsNotValidException;
-import ru.spbstu.university.authorizationserver.service.auth.exception.SessionExpiredException;
 import ru.spbstu.university.authorizationserver.service.auth.security.codeverifier.CodeVerifierProvider;
 import ru.spbstu.university.authorizationserver.service.auth.security.token.openid.OpenidTokenProvider;
 import ru.spbstu.university.authorizationserver.service.exception.UserNotFoundException;
@@ -55,7 +54,7 @@ public class AuthProvider {
 
         if (loginVerifier.isPresent()) {
             codeVerifierProvider.validate(loginVerifier.get());
-            final User user = userService.getBySessionId(sessionId).orElseThrow(UserNotFoundException::new);
+            final User user = userService.getByState(state).orElseThrow(UserNotFoundException::new);
             return authFlowManager.consentFlow(user, loginVerifier.get());
         }
 

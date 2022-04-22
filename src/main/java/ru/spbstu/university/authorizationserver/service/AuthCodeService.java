@@ -15,16 +15,16 @@ public class AuthCodeService {
     private final AuthCodeRepository authCodeRepository;
 
     @NonNull
-    public String create(@NonNull String sessionId, @NonNull String code) {
-        return authCodeRepository.create(sessionId, code);
+    public String create(@NonNull String id, @NonNull String code) {
+        return authCodeRepository.create(id, code);
     }
 
     @NonNull
-    public String get(@NonNull String sessionId) {
-        return authCodeRepository.get(sessionId).orElseThrow(SessionExpiredException::new);
+    public String get(@NonNull String id) {
+        return authCodeRepository.get(id).orElseThrow(SessionExpiredException::new);
     }
 
-    public void delete(@NonNull String sessionId) {
-        authCodeRepository.delete(sessionId);
+    public void delete(@NonNull String id) {
+        authCodeRepository.delete(id);
     }
 }

@@ -1,6 +1,8 @@
 package ru.spbstu.university.authorizationserver.controller.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -10,9 +12,9 @@ import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 
 @Getter
 @AllArgsConstructor
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class TokenRequest {
     @NonNull
-    @JsonProperty("client_id")
     private final String clientId;
     @NonNull
     private final List<GrantTypeEnum> grantTypes;

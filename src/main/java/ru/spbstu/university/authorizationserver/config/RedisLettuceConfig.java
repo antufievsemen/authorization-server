@@ -6,21 +6,14 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-import ru.spbstu.university.authorizationserver.model.AuthParams;
-import ru.spbstu.university.authorizationserver.model.CompletedParams;
-import ru.spbstu.university.authorizationserver.model.ConsentParams;
-import ru.spbstu.university.authorizationserver.model.PkceParams;
+import ru.spbstu.university.authorizationserver.model.cache.AuthParams;
+import ru.spbstu.university.authorizationserver.model.cache.CompletedParams;
+import ru.spbstu.university.authorizationserver.model.cache.ConsentParams;
+import ru.spbstu.university.authorizationserver.model.cache.PkceParams;
 import ru.spbstu.university.authorizationserver.service.auth.dto.logout.LogoutInfo;
 
 @Configuration
 public class RedisLettuceConfig {
-
-//    @Bean
-//    public LettuceConnectionFactory connectionFactory() {
-////        return new LettuceConnectionFactory("localhost", 16379);
-//        return new LettuceConnectionFactory();
-//    }
-
     @Bean
     //sessionId - request params
     public RedisTemplate<String, AuthParams> authRequestParamsRedisTemplate(LettuceConnectionFactory connectionFactory) {

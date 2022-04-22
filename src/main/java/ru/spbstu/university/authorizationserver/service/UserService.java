@@ -22,14 +22,19 @@ public class UserService {
 
     @NonNull
     public User create(@NonNull String sub, @NonNull Client client, @NonNull List<Scope> scopes,
-                       @NonNull String sessionId) {
-        final User user = new User(sub, client, scopes, sessionId);
+                       @NonNull String sessionId, @NonNull String state) {
+        final User user = new User(sub, client, scopes, sessionId, state);
         return userRepository.save(user);
     }
 
     @NonNull
     public Optional<User> getBySessionId(@NonNull String sessionId) {
-        return userRepository.getBySessionId(sessionId);
+        return userRepository.getUserBySessionId(sessionId);
+    }
+
+    @NonNull
+    public Optional<User> getByState(@NonNull String state) {
+        return userRepository.getUserByState(state);
     }
 
     @NonNull

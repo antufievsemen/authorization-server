@@ -42,7 +42,7 @@ public class LogoutController {
     @NonNull
     private LogoutInfoResponse getLogoutInfoResponse(@NonNull LogoutInfo logoutInfo) {
         return new LogoutInfoResponse(logoutInfo.getUser().getId(), logoutInfo.getUser().getClient(),
-                logoutInfo.getPostRedirectUri(), logoutInfo.getUser().getCreatedAt().getNano(),
+                logoutInfo.getPostRedirectUri(), logoutInfo.getUser().getCreatedAt().getTime(),
                 logoutInfo.getUser().getScopes().stream().map(Scope::getName).collect(Collectors.toList()));
     }
 

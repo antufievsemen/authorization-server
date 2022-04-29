@@ -10,16 +10,17 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import ru.spbstu.university.authorizationserver.model.Client;
-import ru.spbstu.university.authorizationserver.model.cache.CompletedParams;
 import ru.spbstu.university.authorizationserver.model.GrantType;
+import ru.spbstu.university.authorizationserver.model.cache.CompletedParams;
 import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 import ru.spbstu.university.authorizationserver.model.enums.ScopeEnum;
+import ru.spbstu.university.authorizationserver.model.enums.TokenType;
 import ru.spbstu.university.authorizationserver.service.CompletedParamsService;
 import ru.spbstu.university.authorizationserver.service.PkceParamsService;
+import ru.spbstu.university.authorizationserver.service.UserService;
 import ru.spbstu.university.authorizationserver.service.auth.dto.token.TokenResponseBody;
 import ru.spbstu.university.authorizationserver.service.auth.exception.GrantTypeNotValidException;
 import ru.spbstu.university.authorizationserver.service.auth.security.authcode.AuthCodeProvider;
-import ru.spbstu.university.authorizationserver.service.auth.security.codeverifier.CodeVerifierProvider;
 import ru.spbstu.university.authorizationserver.service.auth.security.pkce.PkceProvider;
 import ru.spbstu.university.authorizationserver.service.auth.security.pkce.exception.PkceAuthIncorrectException;
 import ru.spbstu.university.authorizationserver.service.auth.security.token.access.AccessTokenProvider;
@@ -46,6 +47,8 @@ public class AuthCodeTokenResponseBodyGenerator {
     private final PkceParamsService pkceParamsService;
     @NonNull
     private final AuthCodeProvider authCodeProvider;
+    @NonNull
+    private final UserService userService;
 
     @NonNull
     public TokenResponseBody generate(@NonNull Client client, @Nullable String code, @Nullable String redirectUri,
@@ -66,10 +69,12 @@ public class AuthCodeTokenResponseBodyGenerator {
 
     private void addOpenidToken(@NonNull MultiValueMap<String, String> map, @NonNull String sessionId,
                                 @NonNull CompletedParams completedParams, @NonNull String token) {
+        final String subject = completedParams.getConsentParams().getUserInfo().getId();
         final String openidToken =
-                openidTokenProvider.create(completedParams.getConsentParams().getUserInfo().getId(),
+                openidTokenProvider.create(subject,
                         completedParams.getConsentParams().getAuthParams().getNonce(),
-                        sessionId, accessTokenProvider.getHash(token), completedParams.getOpenidInfo());
+                        sessionId, accessTokenProvider.getHash(token),
+                        userService.createUserInfo(subject, Objects.requireNonNull(completedParams.getOpenidInfo())));
 
         map.add("id_token", openidToken);
     }
@@ -87,8 +92,9 @@ public class AuthCodeTokenResponseBodyGenerator {
                         client.getClientId(), sessionId, completedParams.getAud(), completedParams.getScopes());
 
         map.add("access_token", jwt.getToken());
-        map.add("expiresIn", String.valueOf(jwt.getExpiresIn().getTime()));
-        map.put("scopes", jwt.getScopes());
+        map.add("token_type", TokenType.JWT.getType());
+        map.add("expires_in", String.valueOf(jwt.getExpiresIn().getTime()));
+        map.put("scope", jwt.getScopes());
 
         if (completedParams.getScopes().contains(ScopeEnum.OPENID.getName())
                 && Objects.nonNull(completedParams.getOpenidInfo())) {
@@ -117,8 +123,9 @@ public class AuthCodeTokenResponseBodyGenerator {
                 .orElseThrow(CodeVerifierExpiredException::new);
 
         if (Objects.nonNull(codeVerifier)) {
-            pkceProvider.validate(codeVerifier, pkceParamsService.get(code)
-                    .orElseThrow(PkceAuthIncorrectException::new));
+            pkceProvider.validate(codeVerifier,
+                    pkceParamsService.get(completedParams.getConsentParams().getUserInfo().getId())
+                            .orElseThrow(PkceAuthIncorrectException::new));
         }
 
         if (Objects.isNull(redirectUri)

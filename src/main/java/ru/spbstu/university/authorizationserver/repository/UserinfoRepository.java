@@ -6,8 +6,8 @@ import lombok.NonNull;
 
 public interface UserinfoRepository {
     @NonNull
-    Map<String, String> create(@NonNull String sessionId, @NonNull Map<String, String> map);
+    Map<String, String> create(@NonNull String subject, @NonNull Map<String, String> map);
+
     @NonNull
-    Optional<Map<String, String>> get(@NonNull String sessionId);
-    void delete(@NonNull String sessionId);
+    Optional<Map<String, String>> get(@NonNull String subject);
 }

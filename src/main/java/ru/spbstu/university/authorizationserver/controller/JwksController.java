@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,17 +26,17 @@ public class JwksController {
 //
 //    }
 
-    @ResponseStatus
+    @ResponseStatus(HttpStatus.OK)
     @GetMapping("/.well-known/jwks.json")
     public JwksResponse keys() {
         return toResponse(jwksService.getAll());
     }
 
     @NonNull
-    private JwksResponse toResponse(@NonNull List<JwksService.KeyDto> keyDtoList) {
+    private JwksResponse toResponse(@NonNull List<JwksService.JwkDto> keyDtoList) {
         return new JwksResponse(keyDtoList.stream()
-                .map(dto -> new JwksResponse.Key("RS256", "AQAB", dto.getPublicKey(), dto.getId(),
-                        dto.getAlg(), "sign"))
+                .map(dto -> new JwksResponse.Key("RS256", dto.getE(), dto.getN(), dto.getKid(),
+                        dto.getAlg(), dto.getUse(), dto.getX5c()))
                 .collect(Collectors.toList()));
     }
 }

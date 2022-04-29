@@ -21,7 +21,7 @@ public class UserController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/oauth2/userinfo")
-    public UserInfoResponse userinfo(@RequestParam("token") String token, @NonNull HttpSession httpSession) {
-        return userInfoManager.getInfo(token, httpSession.getId());
+    public UserInfoResponse userinfo(@RequestParam("token") String token) {
+        return userInfoManager.getInfo(token);
     }
 }

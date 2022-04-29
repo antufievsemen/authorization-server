@@ -1,27 +1,24 @@
 package ru.spbstu.university.authorizationserver.service.auth.security.token.access;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.SignatureAlgorithm;
-import io.jsonwebtoken.SignatureException;
-import io.jsonwebtoken.UnsupportedJwtException;
-import java.nio.charset.StandardCharsets;
 import java.security.KeyFactory;
-import java.security.PrivateKey;
+import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
+import lombok.Setter;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -29,13 +26,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import ru.spbstu.university.authorizationserver.config.SelfIssuerSettings;
-import ru.spbstu.university.authorizationserver.model.KeySet;
-import ru.spbstu.university.authorizationserver.model.enums.TokenEnum;
+import ru.spbstu.university.authorizationserver.model.Jwk;
 import ru.spbstu.university.authorizationserver.model.enums.TokenType;
+import ru.spbstu.university.authorizationserver.service.auth.dto.token.IntrospectBody;
 import ru.spbstu.university.authorizationserver.service.auth.security.JwksService;
-import ru.spbstu.university.authorizationserver.service.auth.security.token.access.exception.AccessTokenNotValidException;
-import ru.spbstu.university.authorizationserver.service.exception.ClientNotFoundException;
-import ru.spbstu.university.authorizationserver.service.exception.ScopeNotValidException;
+import ru.spbstu.university.authorizationserver.service.auth.security.token.access.exception.IncorrectAlgorithmException;
+import ru.spbstu.university.authorizationserver.service.exception.JwksNotFoundException;
 import ru.spbstu.university.authorizationserver.service.generator.Generator;
 
 @Slf4j
@@ -58,7 +54,7 @@ public class AccessTokenProvider {
         this.idGenerator = idGenerator;
         this.settings = settings;
         this.jwksService = jwksService;
-        this.VALIDITY_TIME_IN_MS = 3_600_000;
+        this.VALIDITY_TIME_IN_MS = 1000 * 5 * 60;
     }
 
     @SneakyThrows
@@ -68,11 +64,13 @@ public class AccessTokenProvider {
         final Map<String, Object> map = new HashMap<>();
         map.put("clientId", clientId);
         map.put("token_use", "access_token");
-        map.put("scopes", scopes);
+        map.put("scope", scopes);
         map.put("sid", sessionId);
         final Date now = new Date();
         final Date expiredTime = new Date(now.getTime() + VALIDITY_TIME_IN_MS);
+        final Keys keys = getOrCreateKeys(clientId);
         final String token = Jwts.builder()
+                .setHeaderParam("kid", keys.getKid())
                 .setClaims(map)
                 .setSubject(sub)
                 .setAudience(aud != null ? aud.toString() : "")
@@ -82,7 +80,7 @@ public class AccessTokenProvider {
                 .setExpiration(expiredTime)
                 .setNotBefore(now)
                 .setHeaderParam("typ", "JWT")
-                .signWith(SignatureAlgorithm.RS256, getPrivateKey(clientId))
+                .signWith(SignatureAlgorithm.RS256, keys.getPrivateKey())
                 .compact();
 
         return new TokenInfo(sub, token, expiredTime, scopes, TokenType.JWT);
@@ -95,11 +93,13 @@ public class AccessTokenProvider {
         final Map<String, Object> map = new HashMap<>();
         map.put("clientId", clientId);
         map.put("token_use", "access_token");
-        map.put("scopes", scopes);
+        map.put("scope", scopes);
         map.put("sid", sessionId);
         final Date now = new Date();
         final Date expiredTime = new Date(now.getTime() + VALIDITY_TIME_IN_MS);
+        final Keys keys = getOrCreateKeys(clientId);
         final String token = Jwts.builder()
+                .setHeaderParam("kid", keys.getKid())
                 .setClaims(map)
                 .setIssuer(settings.getIssuer())
                 .setId(idGenerator.generate())
@@ -107,7 +107,7 @@ public class AccessTokenProvider {
                 .setExpiration(expiredTime)
                 .setNotBefore(now)
                 .setHeaderParam("typ", "JWT")
-                .signWith(SignatureAlgorithm.RS256, getPrivateKey(clientId))
+                .signWith(SignatureAlgorithm.RS256, keys.getPrivateKey())
                 .compact();
 
         return new ClientCredentialsToken(token, expiredTime, scopes, TokenType.JWT);
@@ -118,40 +118,39 @@ public class AccessTokenProvider {
     public TokenInfo createJwt(@NonNull Claims claims, @NonNull String clientId) {
         final Date now = new Date();
         final Date expiredTime = new Date(now.getTime() + VALIDITY_TIME_IN_MS);
+        final Keys keys = getOrCreateKeys(clientId);
         final String token = Jwts.builder()
+                .setHeaderParam("kid", keys.getKid())
                 .setClaims(claims)
                 .setExpiration(expiredTime)
                 .setHeaderParam("typ", "JWT")
-                .signWith(SignatureAlgorithm.RS256, getPrivateKey(clientId))
+                .signWith(SignatureAlgorithm.RS256, keys.getPrivateKey())
                 .compact();
 
         return new TokenInfo(claims.getSubject(), token, expiredTime, claims.get("scopes", List.class),
                 TokenType.JWT);
     }
 
+    @SneakyThrows
     @NonNull
-    public Claims validate(@NonNull String token, @NonNull String clientId) {
-        final KeySet keySet = jwksService.getByClientId(clientId, TokenEnum.ACCESS_TOKEN)
-                .orElseThrow(ClientNotFoundException::new);
-        Jws<Claims> claims = getClaims(token, keySet);
+    public IntrospectBody introspect(@NonNull String token) {
+        String[] chunks = token.split("\\.");
+        Base64.Decoder decoder = Base64.getUrlDecoder();
 
-        return claims.getBody();
-    }
-
-    @NonNull
-    public Claims validate(@NonNull String token, @NonNull String clientId, @Nullable List<String> scopes) {
-        final KeySet keySet = jwksService.getByClientId(clientId, TokenEnum.ACCESS_TOKEN)
-                .orElseThrow(ClientNotFoundException::new);
-        Jws<Claims> claims = getClaims(token, keySet);
-
-        if (Objects.nonNull(scopes)) {
-            final List<String> tokenScopes = claims.getBody().get("scopes", List.class);
-            if (!tokenScopes.containsAll(scopes)) {
-                throw new ScopeNotValidException();
-            }
+        String header = new String(decoder.decode(chunks[0]));
+        final JwtHeader jwtHeader = new ObjectMapper().readValue(header, JwtHeader.class);
+        if (!jwtHeader.getAlg().equals("RS256")) {
+            throw new IncorrectAlgorithmException();
         }
 
-        return claims.getBody();
+        final Jws<Claims> claimsJws;
+        try {
+            claimsJws = Jwts.parser().setSigningKey(getPrivateKey(jwtHeader.getKid()))
+                    .parseClaimsJws(token);
+        } catch (ExpiredJwtException e) {
+            return new IntrospectBody(false, Jwts.parser().parseClaimsJws(chunks[1]).getBody());
+        }
+        return new IntrospectBody(true, claimsJws.getBody());
     }
 
     @SneakyThrows
@@ -160,26 +159,26 @@ public class AccessTokenProvider {
         final byte[] hashBytes = new byte[16];
         System.arraycopy(bytes, 0, hashBytes, 0, 15);
 
-        return Arrays.toString(hashBytes);
-    }
-
-    @NonNull
-    public Jws<Claims> getClaims(@NonNull String token, @NonNull KeySet keySet) {
-        try {
-            return Jwts.parser().setSigningKey(keySet.getPrivateKey()).parseClaimsJws(token);
-        } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException
-                | SignatureException | IllegalArgumentException e) {
-            throw new AccessTokenNotValidException();
-        }
+        return Base64.getEncoder().encodeToString(hashBytes);
     }
 
     @SneakyThrows
     @NonNull
-    private PrivateKey getPrivateKey(@NonNull String clientId) {
-        final KeySet keySet = jwksService.getOrCreateKeyPair(clientId, TokenEnum.ACCESS_TOKEN);
-        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keySet.getPrivateKey());
-        KeyFactory kf = KeyFactory.getInstance("RSA");
-        return kf.generatePrivate(keySpec);
+    private RSAPrivateKey getPrivateKey(@NonNull String kid) {
+        final Jwk jwk = jwksService.get(kid).orElseThrow(JwksNotFoundException::new);
+        final PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(jwk.getPrivateKey());
+        final KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+        return (RSAPrivateKey) keyFactory.generatePrivate(pkcs8EncodedKeySpec);
+    }
+
+    @SneakyThrows
+    @NonNull
+    private Keys getOrCreateKeys(@NonNull String clientId) {
+        final Jwk jwk = jwksService.getOrCreateJwk(clientId);
+        final PKCS8EncodedKeySpec pkcs8EncodedKeySpec = new PKCS8EncodedKeySpec(jwk.getPrivateKey());
+        final KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+
+        return new Keys(jwk.getKid(), (RSAPrivateKey) keyFactory.generatePrivate(pkcs8EncodedKeySpec));
     }
 
     @Getter
@@ -208,5 +207,27 @@ public class AccessTokenProvider {
         private final List<String> scopes;
         @NonNull
         private final TokenType tokenType;
+    }
+
+    @Getter
+    @AllArgsConstructor
+    private static class Keys {
+        @NonNull
+        private final String kid;
+        @NonNull
+        private final RSAPrivateKey privateKey;
+    }
+
+    @Setter
+    @Getter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    private static class JwtHeader {
+        @NonNull
+        private String typ;
+        @NonNull
+        private String alg;
+        @NonNull
+        private String kid;
     }
 }

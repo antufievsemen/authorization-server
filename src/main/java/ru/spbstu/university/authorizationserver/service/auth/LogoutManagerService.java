@@ -48,7 +48,7 @@ public class LogoutManagerService {
     @NonNull
     public RedirectResponse logout(@NonNull User user, @NonNull String idTokenHint, @NonNull Optional<String> state,
                                    @NonNull Optional<String> redirectUri) {
-        openidTokenProvider.validate(idTokenHint, user.getClient().getClientId());
+        openidTokenProvider.introspect(idTokenHint);
 
         final String logoutVerifier = codeVerifierProvider.generate();
         logoutInfoService.create(logoutVerifier,

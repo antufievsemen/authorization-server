@@ -8,6 +8,7 @@ import lombok.NonNull;
 @Getter
 @AllArgsConstructor
 public class IntrospectBody {
+    private final boolean active;
     @NonNull
     private final Claims claims;
 }

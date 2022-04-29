@@ -1,11 +1,10 @@
 package ru.spbstu.university.authorizationserver.model;
 
+import java.math.BigInteger;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
-import javax.persistence.FetchType;
 import javax.persistence.Id;
-import javax.persistence.OneToOne;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -18,17 +17,19 @@ import ru.spbstu.university.authorizationserver.model.enums.TokenEnum;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class KeySet {
+public class Jwk {
     @Id
     @NonNull
-    private String id;
+    private String kid;
     @NonNull
     private String clientId;
     @NonNull
-    @Enumerated(EnumType.STRING)
-    private TokenEnum tokenType;
-    @NonNull
     private String alg;
+    @NonNull
+    private String use;
+    @NonNull
+    private String kty;
     private byte[] privateKey;
-    private byte[] publicKey;
+    private byte[] n;
+    private byte[] e;
 }

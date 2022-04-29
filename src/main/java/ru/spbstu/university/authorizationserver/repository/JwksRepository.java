@@ -4,15 +4,13 @@ import java.util.Optional;
 import lombok.NonNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
-import ru.spbstu.university.authorizationserver.model.KeySet;
+import ru.spbstu.university.authorizationserver.model.Jwk;
 import ru.spbstu.university.authorizationserver.model.enums.TokenEnum;
 
 @Repository
-public interface KeySetRepository extends JpaRepository<KeySet, String> {
-
+public interface JwksRepository extends JpaRepository<Jwk, String> {
     @NonNull
-    Optional<KeySet> findByClientId(@NonNull String clientId);
-
+    Optional<Jwk> findByKid(@NonNull String kid);
     @NonNull
-    Optional<KeySet> findByClientIdAndTokenType(@NonNull String clientId, @NonNull TokenEnum tokenType);
+    Optional<Jwk> findByClientId(@NonNull String clientId);
 }

@@ -1,9 +1,11 @@
 package ru.spbstu.university.authorizationserver.controller;
 
+import java.util.Objects;
 import javax.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -13,6 +15,7 @@ import ru.spbstu.university.authorizationserver.controller.dto.request.Introspec
 import ru.spbstu.university.authorizationserver.controller.dto.request.RevokeRequest;
 import ru.spbstu.university.authorizationserver.controller.dto.request.TokenRequest;
 import ru.spbstu.university.authorizationserver.controller.dto.response.IntrospectResponse;
+import ru.spbstu.university.authorizationserver.controller.dto.response.TokenResponse;
 import ru.spbstu.university.authorizationserver.service.auth.IntrospectManager;
 import ru.spbstu.university.authorizationserver.service.auth.RevokeManager;
 import ru.spbstu.university.authorizationserver.service.auth.TokenManager;
@@ -32,10 +35,10 @@ public class TokenController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping("/oauth2/token")
-    public TokenResponseBody token(@RequestBody TokenRequest request, @NonNull HttpSession httpSession) {
-        return tokenManager.generate(request.getClientId(), request.getClientSecret(), request.getCode(),
+    public TokenResponse create(@RequestBody TokenRequest request, @NonNull HttpSession httpSession) {
+        return toTokenResponse(tokenManager.generate(request.getClientId(), request.getClientSecret(), request.getCode(),
                 request.getRedirectUri(), request.getGrantTypes(), request.getAccessToken(), request.getRefreshToken(),
-                httpSession.getId(), request.getScopes(), request.getCodeVerifier());
+                httpSession.getId(), request.getScopes(), request.getCodeVerifier()));
     }
 
     @ResponseStatus(HttpStatus.OK)
@@ -46,12 +49,21 @@ public class TokenController {
 
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("/oauth2/introspect")
-    public IntrospectResponse introspect(@RequestBody IntrospectRequest request, @NonNull HttpSession httpSession) {
-        return toResponse(introspectManager.introspect(request.getToken(), request.getScopes(), httpSession.getId()));
+    public IntrospectResponse introspect(@RequestBody IntrospectRequest request) {
+        return toResponse(introspectManager.introspect(request.getToken(), request.getScopes()));
     }
 
     @NonNull
     private IntrospectResponse toResponse(@NonNull IntrospectBody body) {
-        return new IntrospectResponse(true, body.getClaims());
+        return new IntrospectResponse(body.isActive(), body.getClaims());
+    }
+
+    @NonNull
+    private TokenResponse toTokenResponse(TokenResponseBody body) {
+        final MultiValueMap<String, String> attributes = body.getAttributes();
+        return new TokenResponse(Objects.requireNonNull(attributes.getFirst("access_token")),
+                Objects.requireNonNull(attributes.getFirst("token_type")), attributes.get("scope"),
+                attributes.getFirst("refresh_token"), attributes.getFirst("id_token"),
+                Objects.requireNonNull(attributes.getFirst("expires_in")));
     }
 }

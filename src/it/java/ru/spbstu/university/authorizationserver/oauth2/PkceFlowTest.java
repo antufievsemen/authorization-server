@@ -44,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ContextConfiguration(initializers = TestcontainersConfig.Initializer.class)
-public class AuthorizationControllerContainerTest {
+public class PkceFlowTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -76,6 +76,8 @@ public class AuthorizationControllerContainerTest {
                 .queryParam("response_type", "code")
                 .queryParam("scope", "offline_access")
                 .queryParam("nonce", "nonce123")
+                .queryParam("code_challenge", "yQtz9wdyIN1k9ri42pmA8H4fijk04shbpV0FNQv4PXA")
+                .queryParam("code_challenge_method", "SHA-256")
                 .build().toASCIIString();
         final MvcResult mvcResult = mockMvc.perform(get(uri))
                 .andDo(print())
@@ -93,7 +95,6 @@ public class AuthorizationControllerContainerTest {
         final ResultResponse resultResponse = objectMapper.
                 readValue(tokenResult.getResponse().getContentAsString(), ResultResponse.class);
         getIntrospectToken(resultResponse);
-        getJwks();
     }
 
     public void getLoginInfo(@NonNull Object loginVerifier) throws Exception {
@@ -191,7 +192,8 @@ public class AuthorizationControllerContainerTest {
                 .build().toASCIIString();
         final TokenRequest request = new TokenRequest(client.getClientId(),
                 List.of(GrantTypeEnum.AUTHORIZATION_CODE, GrantTypeEnum.REFRESH_TOKEN), client.getClientSecret(),
-                (String) code, null, null, client.getCallbacks().get(0).getUrl(), null, null);
+                (String) code, null, null, client.getCallbacks().get(0).getUrl(), null,
+                "blSC0GBTByO_DgGMEA3cYjLmfjb9qTbxiHvMO7NyUpJhVdCt");
 
         return mockMvc.perform(post(uri)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -211,17 +213,6 @@ public class AuthorizationControllerContainerTest {
         mockMvc.perform(post(uri)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
-    }
-
-    private void getJwks() throws Exception {
-        final DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory("http://localhost:8080");
-        final String uri = factory
-                .uriString("/v1/.well-known/jwks.json")
-                .build().toASCIIString();
-        mockMvc.perform(get(uri))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn();

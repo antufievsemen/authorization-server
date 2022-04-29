@@ -44,7 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @ContextConfiguration(initializers = TestcontainersConfig.Initializer.class)
-public class AuthorizationControllerContainerTest {
+public class ImplicitFlowTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -61,11 +61,10 @@ public class AuthorizationControllerContainerTest {
     }
 
     @Test
-    void getAuthorizationCodeTest() throws Exception {
+    void getImplicitTokenTest() throws Exception {
         client = clientService.create("my-id", "my-secret",
-                List.of(GrantTypeEnum.AUTHORIZATION_CODE, GrantTypeEnum.REFRESH_TOKEN),
-                List.of(ScopeEnum.OFFLINE_ACCESS.getName(), ScopeEnum.OPENID.getName(),
-                        ScopeEnum.PROFILE.getName()), List.of(ResponseTypeEnum.CODE),
+                List.of(GrantTypeEnum.IMPLICIT),
+                List.of("reads", "getters"), List.of(ResponseTypeEnum.TOKEN),
                 List.of("http://localhost:8080/v1/clients"));
 
         final String uri = new DefaultUriBuilderFactory("http://localhost:8080")
@@ -73,8 +72,8 @@ public class AuthorizationControllerContainerTest {
                 .queryParam("state", "state12")
                 .queryParam("client_id", "my-id")
                 .queryParam("redirect_uri", "http://localhost:8080/v1/clients")
-                .queryParam("response_type", "code")
-                .queryParam("scope", "offline_access")
+                .queryParam("response_type", "token")
+                .queryParam("scope", "reads", "getters")
                 .queryParam("nonce", "nonce123")
                 .build().toASCIIString();
         final MvcResult mvcResult = mockMvc.perform(get(uri))
@@ -88,12 +87,11 @@ public class AuthorizationControllerContainerTest {
         final Object consentVerifier = getConsentFlow(loginAcceptUri);
         getConsentInfo(consentVerifier);
         final String consentAcceptUri = getConsentAccept(consentVerifier);
-        final MvcResult result = getAuthCode(consentAcceptUri);
-        final MvcResult tokenResult = getToken(result.getModelAndView().getModel().get("code"));
-        final ResultResponse resultResponse = objectMapper.
-                readValue(tokenResult.getResponse().getContentAsString(), ResultResponse.class);
+        final MvcResult result = getToken(consentAcceptUri);
+        final Map<String, Object> model = result.getModelAndView().getModel();
+        final ResultResponse resultResponse = new ResultResponse((String) model.get("access_token"),
+                (String) model.get("token_type"),  (List<String>) model.get("scope"));
         getIntrospectToken(resultResponse);
-        getJwks();
     }
 
     public void getLoginInfo(@NonNull Object loginVerifier) throws Exception {
@@ -173,7 +171,7 @@ public class AuthorizationControllerContainerTest {
     }
 
     @NonNull
-    public MvcResult getAuthCode(@NonNull String uri) throws Exception {
+    public MvcResult getToken(@NonNull String uri) throws Exception {
         final MvcResult mvcResult = mockMvc.perform(get(URI.create(uri)))
                 .andDo(print())
                 .andExpect(status().isMovedPermanently())
@@ -182,24 +180,6 @@ public class AuthorizationControllerContainerTest {
         return mvcResult;
     }
 
-    @NonNull
-    public MvcResult getToken(@NonNull Object code) throws Exception {
-        final DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory("http://localhost:8080");
-        factory.setEncodingMode(DefaultUriBuilderFactory.EncodingMode.NONE);
-        final String uri = factory
-                .uriString("/v1/oauth2/token")
-                .build().toASCIIString();
-        final TokenRequest request = new TokenRequest(client.getClientId(),
-                List.of(GrantTypeEnum.AUTHORIZATION_CODE, GrantTypeEnum.REFRESH_TOKEN), client.getClientSecret(),
-                (String) code, null, null, client.getCallbacks().get(0).getUrl(), null, null);
-
-        return mockMvc.perform(post(uri)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(request)))
-                .andDo(print())
-                .andExpect(status().isCreated())
-                .andReturn();
-    }
 
     private void getIntrospectToken(@NonNull ResultResponse resultResponse) throws Exception {
         final DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory("http://localhost:8080");
@@ -216,17 +196,6 @@ public class AuthorizationControllerContainerTest {
                 .andReturn();
     }
 
-    private void getJwks() throws Exception {
-        final DefaultUriBuilderFactory factory = new DefaultUriBuilderFactory("http://localhost:8080");
-        final String uri = factory
-                .uriString("/v1/.well-known/jwks.json")
-                .build().toASCIIString();
-        mockMvc.perform(get(uri))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn();
-    }
-
     @Getter
     @Setter
     @AllArgsConstructor
@@ -234,11 +203,8 @@ public class AuthorizationControllerContainerTest {
     @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     private static class ResultResponse {
         private String accessToken;
-        private String refreshToken;
         private String tokenType;
-        private Long expiresIn;
         private List<String> scope;
-        private String idToken;
     }
 
     @AfterAll

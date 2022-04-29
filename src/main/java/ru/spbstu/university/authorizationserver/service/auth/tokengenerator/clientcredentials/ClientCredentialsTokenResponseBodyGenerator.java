@@ -31,8 +31,8 @@ public class ClientCredentialsTokenResponseBodyGenerator {
         final LinkedMultiValueMap<String, String> map = new LinkedMultiValueMap<>();
         map.add("access_token", jwt.getToken());
         map.add("token_type", "JWT");
-        map.add("expiresIn", String.valueOf(jwt.getExpiresIn().getTime()));
-        map.put("scopes", jwt.getScopes());
+        map.add("expires_in", String.valueOf(jwt.getExpiresIn().getTime()));
+        map.put("scope", jwt.getScopes());
 
         return new TokenResponseBody(map);
     }

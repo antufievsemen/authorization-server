@@ -1,5 +1,6 @@
 package ru.spbstu.university.authorizationserver.config;
 
+import java.util.Map;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
@@ -27,7 +28,7 @@ public class RedisLettuceConfig {
 
     @Bean
     //sessionId - pkce request
-    public RedisTemplate<String, PkceParams> pkceRequestRedisTemplate(LettuceConnectionFactory connectionFactory) {
+    public RedisTemplate<String, PkceParams> pkceRequesParamstRedisTemplate(LettuceConnectionFactory connectionFactory) {
         final RedisTemplate<String, PkceParams> template = new RedisTemplate<>();
         template.setConnectionFactory(connectionFactory);
         template.setKeySerializer(new StringRedisSerializer());
@@ -46,13 +47,16 @@ public class RedisLettuceConfig {
         return template;
     }
 
-//    @Bean
-//    //sessionId - auth code
-//    public RedisTemplate<String, String> authCodeRedisTemplate() {
-//        final RedisTemplate<String, String> template = new RedisTemplate<>();
-//        template.setConnectionFactory(new LettuceConnectionFactory());
-//        return template;
-//    }
+    @Bean
+    //subject - userInfo
+    public RedisTemplate<String, Map<String, String>> userInfoRedisTemplate(LettuceConnectionFactory connectionFactory) {
+        final RedisTemplate<String, Map<String, String>> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(new GenericJackson2JsonRedisSerializer());
+        template.setEnableTransactionSupport(true);
+        return template;
+    }
 
     @Bean
     //session- consent request params

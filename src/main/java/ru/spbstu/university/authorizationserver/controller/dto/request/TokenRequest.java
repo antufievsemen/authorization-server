@@ -12,7 +12,6 @@ import ru.spbstu.university.authorizationserver.model.enums.GrantTypeEnum;
 
 @Getter
 @AllArgsConstructor
-@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class TokenRequest {
     @NonNull
     private final String clientId;

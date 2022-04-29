@@ -27,6 +27,7 @@ import ru.spbstu.university.authorizationserver.service.auth.dto.redirect.login.
 import ru.spbstu.university.authorizationserver.service.auth.exception.SessionExpiredException;
 import ru.spbstu.university.authorizationserver.service.auth.security.authcode.AuthCodeProvider;
 import ru.spbstu.university.authorizationserver.service.auth.security.codeverifier.CodeVerifierProvider;
+import ru.spbstu.university.authorizationserver.service.auth.security.pkce.exception.PkceAuthIncorrectException;
 import ru.spbstu.university.authorizationserver.service.auth.security.token.access.AccessTokenProvider;
 
 @Service
@@ -56,7 +57,11 @@ public class AuthFlowManager {
         if (authParams.getGrantTypes()
                 .containsAll(List.of(GrantTypeEnum.AUTHORIZATION_CODE, GrantTypeEnum.REFRESH_TOKEN))
                 && codeChallenge.isPresent() && codeChallengeMethod.isPresent()) {
-            pkceParamsService.create(authParams.getState(), new PkceParams(codeChallenge.get(), codeChallengeMethod.get()));
+            if (!codeChallengeMethod.get().equals("SHA-256")) {
+                throw new PkceAuthIncorrectException();
+            }
+            pkceParamsService.create(authParams.getState(), new PkceParams(codeChallenge.get(),
+                    codeChallengeMethod.get()));
         }
 
         final String verifier = codeVerifierProvider.generate();
@@ -108,7 +113,8 @@ public class AuthFlowManager {
         final String code = authCodeProvider.generate();
         completedParamsService.create(code, completedParams);
         pkceParamsService.get(completedParams.getConsentParams().getAuthParams().getState())
-                .ifPresent(pkceParams -> pkceParamsService.create(code, pkceParams));
+                .ifPresent(pkceParams -> pkceParamsService
+                        .create(completedParams.getConsentParams().getUserInfo().getId(), pkceParams));
         return new RedirectCodeResponse(code, authParams.getRedirectUri(),
                 authParams.getState());
     }

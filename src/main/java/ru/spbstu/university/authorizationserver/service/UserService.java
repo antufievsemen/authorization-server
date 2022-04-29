@@ -1,15 +1,18 @@
 package ru.spbstu.university.authorizationserver.service;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.MultiValueMap;
 import ru.spbstu.university.authorizationserver.model.Client;
 import ru.spbstu.university.authorizationserver.model.Scope;
 import ru.spbstu.university.authorizationserver.model.User;
 import ru.spbstu.university.authorizationserver.repository.UserRepository;
+import ru.spbstu.university.authorizationserver.repository.UserinfoRepository;
 import ru.spbstu.university.authorizationserver.service.exception.UserNotFoundException;
 
 @Service
@@ -19,6 +22,8 @@ public class UserService {
 
     @NonNull
     private final UserRepository userRepository;
+    @NonNull
+    private final UserinfoRepository userinfoRepository;
 
     @NonNull
     public User create(@NonNull String sub, @NonNull Client client, @NonNull List<Scope> scopes,
@@ -46,15 +51,14 @@ public class UserService {
         userRepository.deleteById(sub);
     }
 
-    public void deleteBySessionId(@NonNull String sessionId) {
-        userRepository.deleteBySessionId(sessionId);
+    @NonNull
+    public Optional<Map<String, String>> getUserInfo(@NonNull String subject) {
+        return userinfoRepository.get(subject);
     }
 
     @NonNull
-    public User update(@NonNull String sub, @NonNull String sessionId) {
-        final User user = get(sub).orElseThrow(UserNotFoundException::new);
-        user.setSessionId(sessionId);
-
-        return userRepository.save(user);
+    public Map<String, String> createUserInfo(@NonNull String subject, @NonNull Map<String, String> userInfo) {
+        userInfo.put("subject", subject);
+        return userinfoRepository.create(subject, userInfo);
     }
 }

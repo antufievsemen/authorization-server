@@ -41,8 +41,6 @@ public class User {
     @NonNull
     private String state;
     @CreationTimestamp
-    @JsonFormat
-            (shape = JsonFormat.Shape.STRING, pattern = "dd-MM-yyyy hh:mm:ss")
     private Date createdAt;
 
     public User(@NonNull String id, @NonNull Client client, @NonNull List<Scope> scopes, @NonNull String sessionId,

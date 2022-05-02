@@ -1,10 +1,10 @@
 package ru.spbstu.university.authorizationserver.service;
 
 import java.util.Optional;
-import javax.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.spbstu.university.authorizationserver.model.cache.ConsentParams;
 import ru.spbstu.university.authorizationserver.repository.ConsentRequestParamsRepository;
 

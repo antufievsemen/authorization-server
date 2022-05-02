@@ -2,7 +2,7 @@ package ru.spbstu.university.authorizationserver.service;
 
 import java.util.Date;
 import java.util.Optional;
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;

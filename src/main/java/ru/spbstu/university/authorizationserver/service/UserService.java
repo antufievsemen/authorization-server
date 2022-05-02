@@ -7,13 +7,11 @@ import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.MultiValueMap;
 import ru.spbstu.university.authorizationserver.model.Client;
 import ru.spbstu.university.authorizationserver.model.Scope;
 import ru.spbstu.university.authorizationserver.model.User;
 import ru.spbstu.university.authorizationserver.repository.UserRepository;
 import ru.spbstu.university.authorizationserver.repository.UserinfoRepository;
-import ru.spbstu.university.authorizationserver.service.exception.UserNotFoundException;
 
 @Service
 @Transactional

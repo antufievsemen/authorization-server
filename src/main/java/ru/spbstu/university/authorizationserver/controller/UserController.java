@@ -1,11 +1,10 @@
 package ru.spbstu.university.authorizationserver.controller;
 
-import javax.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import ru.spbstu.university.authorizationserver.controller.annotation.ApiV1;
@@ -21,7 +20,7 @@ public class UserController {
 
     @ResponseStatus(HttpStatus.OK)
     @GetMapping("/oauth2/userinfo")
-    public UserInfoResponse userinfo(@RequestParam("token") String token) {
+    public UserInfoResponse userinfo(@RequestHeader("Authorization") String token) {
         return userInfoManager.getInfo(token);
     }
 }

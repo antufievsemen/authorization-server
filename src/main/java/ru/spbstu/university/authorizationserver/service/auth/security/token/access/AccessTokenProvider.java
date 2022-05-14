@@ -62,7 +62,7 @@ public class AccessTokenProvider {
     public TokenInfo createJwt(@NonNull String sub, @NonNull String clientId, @NonNull String sessionId,
                                @Nullable List<String> aud, @NonNull List<String> scopes) {
         final Map<String, Object> map = new HashMap<>();
-        map.put("clientId", clientId);
+        map.put("client_id", clientId);
         map.put("token_use", "access_token");
         map.put("scope", scopes);
         map.put("sid", sessionId);
@@ -91,7 +91,7 @@ public class AccessTokenProvider {
     public ClientCredentialsToken createJwt(@NonNull String clientId, @NonNull String sessionId,
                                             @NonNull List<String> scopes) {
         final Map<String, Object> map = new HashMap<>();
-        map.put("clientId", clientId);
+        map.put("client_id", clientId);
         map.put("token_use", "access_token");
         map.put("scope", scopes);
         map.put("sid", sessionId);

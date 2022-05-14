@@ -43,8 +43,8 @@ public class TokenController {
 
     @ResponseStatus(HttpStatus.OK)
     @PostMapping("/oauth2/revoke")
-    public void revoke(@RequestBody RevokeRequest request, @NonNull HttpSession httpSession) {
-        revokeManager.revoke(request.getToken(), httpSession.getId());
+    public void revoke(@RequestBody RevokeRequest request) {
+        revokeManager.revoke(request.getToken());
     }
 
     @ResponseStatus(HttpStatus.OK)

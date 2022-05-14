@@ -1,6 +1,5 @@
 package ru.spbstu.university.authorizationserver.testcontainers;
 
-import javax.annotation.PostConstruct;
 import org.springframework.boot.test.util.TestPropertyValues;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;

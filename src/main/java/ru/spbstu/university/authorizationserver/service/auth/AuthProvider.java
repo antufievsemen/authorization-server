@@ -36,8 +36,6 @@ public class AuthProvider {
     private final LogoutManagerService logoutManagerService;
     @NonNull
     private final CodeVerifierProvider codeVerifierProvider;
-    @NonNull
-    private final OpenidTokenProvider openidTokenProvider;
 
     @NonNull
     public RedirectResponse authorize(@NonNull String clientId, @NonNull List<String> responseTypes,

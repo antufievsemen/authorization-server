@@ -1,5 +1,6 @@
 package ru.spbstu.university.authorizationserver.repository.redis;
 
+import io.jsonwebtoken.Claims;
 import java.util.Date;
 import java.util.Optional;
 import lombok.AllArgsConstructor;
@@ -17,10 +18,10 @@ public class RedisRevokeTokenRepository implements RevokeTokenRepository {
 
     @NonNull
     @Override
-    public String save(@NonNull String id, @NonNull String token, @NonNull Date expireAt) {
-        stringRedisTemplate.opsForValue().set(id, token);
+    public String save(@NonNull String id, @NonNull String clientId, @NonNull Date expireAt) {
+        stringRedisTemplate.opsForValue().set(id, clientId);
         stringRedisTemplate.expireAt(id, expireAt);
-        return token;
+        return clientId;
     }
 
     @NonNull

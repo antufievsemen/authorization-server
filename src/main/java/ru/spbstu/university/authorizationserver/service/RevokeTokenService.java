@@ -1,11 +1,12 @@
 package ru.spbstu.university.authorizationserver.service;
 
+import io.jsonwebtoken.Claims;
 import java.util.Date;
 import java.util.Optional;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.NonNull;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.spbstu.university.authorizationserver.repository.RevokeTokenRepository;
 
 @Service
@@ -14,9 +15,10 @@ import ru.spbstu.university.authorizationserver.repository.RevokeTokenRepository
 public class RevokeTokenService {
     @NonNull
     private final RevokeTokenRepository revokeTokenRepository;
+
     @NonNull
-    public String save(@NonNull String id, @NonNull String token, @NonNull Date expireAt) {
-        return revokeTokenRepository.save(id, token, expireAt);
+    public String revoke(@NonNull String token, @NonNull Claims claims, @NonNull Date expireAt) {
+        return revokeTokenRepository.save(token, claims.get("client_id", String.class), expireAt);
     }
 
     @NonNull
